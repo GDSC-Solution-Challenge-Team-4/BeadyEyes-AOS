@@ -20,4 +20,6 @@
     <color name="icActive">#FFFFFFFF</color>
     <color name="icFocused">#DDFFFFFF</color>
     <color name="icPressed">#AAFFFFFF</color>
+    <color name="main_yellow">#F1DB1A</color>
+
 </resources>

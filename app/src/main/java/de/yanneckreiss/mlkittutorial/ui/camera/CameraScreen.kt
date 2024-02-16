@@ -22,6 +22,7 @@ import androidx.compose.material.Button
 import androidx.compose.material.IconButton
 import androidx.compose.material.LocalContentColor
 import androidx.compose.material.Scaffold
+import androidx.compose.material.Slider
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material3.Icon
@@ -37,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color.Companion.White
+import androidx.compose.ui.modifier.modifierLocalProvider
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
@@ -79,8 +81,6 @@ private fun CameraContent() {
         }
     }
 
-
-    var isPlaying: Boolean by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -137,7 +137,6 @@ private fun CameraContent() {
                                 onDetectedTextUpdated = ::onTextUpdated
                             )
                         }.also {
-
                         }
                     }
                 )
@@ -149,11 +148,11 @@ private fun CameraContent() {
                     .background(White)
                     .padding(16.dp)
             ) {
-//                Text(
-//                    text = detectedText,
-//                    maxLines = 3,
-//                    overflow = TextOverflow.Ellipsis
-//                )
+                Text(
+                    text = detectedText,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis
+                )
                 val contentColor = LocalContentColor.current
                 // Button for Text-to-Speech
                 IconButton(
@@ -172,6 +171,9 @@ private fun CameraContent() {
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
+//                ZoomSeekBar { zoomLevel ->
+//                    // 여기에서 zoomLevel 값을 사용하여 카메라 줌 조정
+//                }
             }
         }
     }
@@ -208,3 +210,25 @@ private fun startTextRecognition(
     cameraController.bindToLifecycle(lifecycleOwner)
     previewView.controller = cameraController
 }
+
+//@Composable
+//fun ZoomSeekBar(onZoomChange: (Int) -> Unit) {
+//    var zoomValue by remember { mutableStateOf(0f) }
+//
+//    Column(
+//        horizontalAlignment = Alignment.CenterHorizontally,
+//        modifier = Modifier,
+//    ) {
+//        Text(text = "Zoom Level: ${zoomValue.toInt()}")
+//        Slider(
+//            value = zoomValue,
+//            onValueChange = { newValue ->
+//                zoomValue = newValue
+//                onZoomChange(newValue.toInt())
+//            },
+//            valueRange = 0f..100f,
+//            steps = 1,
+//            modifier = Modifier.padding(horizontal = 16.dp)
+//        )
+//    }
+//}
