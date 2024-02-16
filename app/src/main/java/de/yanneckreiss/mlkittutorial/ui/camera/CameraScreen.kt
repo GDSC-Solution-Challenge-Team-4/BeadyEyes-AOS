@@ -13,9 +13,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.BottomNavigation
+import androidx.compose.material.BottomNavigationItem
+import androidx.compose.material.ContentAlpha
 import androidx.compose.material.IconButton
 import androidx.compose.material.LocalContentColor
 import androidx.compose.material.Scaffold
@@ -42,7 +46,16 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import de.yanneckreiss.cameraxtutorial.R
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.NavDestination
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import de.yanneckreiss.mlkittutorial.translate.TranslateViewModel
+import de.yanneckreiss.mlkittutorial.ui.navigate.BottomNavItem
+import de.yanneckreiss.mlkittutorial.ui.navigate.NavigationGraph
 
 @Composable
 fun CameraScreen() {
@@ -56,13 +69,13 @@ private fun CameraContent(
 
     val context: Context = LocalContext.current
     val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
-    val cameraController: LifecycleCameraController = remember { LifecycleCameraController(context) }
+    val cameraController: LifecycleCameraController =
+        remember { LifecycleCameraController(context) }
     var detectedText: String by remember { mutableStateOf("No text detected yet..") }
     // Text to speech related variables
     var textToSpeechInitialized by remember { mutableStateOf(false) }
     var textToSpeech: TextToSpeech? by remember { mutableStateOf(null) }
     val state by viewModel.state
-
 
 
     fun onTextUpdated(updatedText: String) {
@@ -83,12 +96,12 @@ private fun CameraContent(
     var isPlaying: Boolean by remember { mutableStateOf(false) }
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
         //topBar = { TopAppBar() },
     ) { paddingValues: PaddingValues ->
         Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = androidx.compose.ui.Alignment.BottomCenter
+            modifier = Modifier.padding(bottom = 75.dp),
+            contentAlignment = Alignment.BottomCenter
         ) {
             Column(
                 modifier = Modifier
@@ -96,24 +109,25 @@ private fun CameraContent(
                     .background(White),
             ) {
                 Box(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .background(White)
                         .padding(5.dp),
                     contentAlignment = Alignment.TopEnd // 버튼 오른쪽 상단에 배치??
-                ){
-                IconButton(
-                    onClick = {
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
                 ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.icon_question),
-                        contentDescription = "question",
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    IconButton(
+                        onClick = {
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.icon_question),
+                            contentDescription = "question",
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
                 }
-            }
 
                 AndroidView(
                     modifier = Modifier
@@ -143,27 +157,23 @@ private fun CameraContent(
                 )
 
             }
+
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(White)
                     .padding(16.dp)
             ) {
-                Text(
-                    text = detectedText,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis
-                )
+
                 val contentColor = LocalContentColor.current
                 // Button for Text-to-Speech
                 IconButton(
                     onClick = {
                         if (textToSpeechInitialized) {
-                            viewModel.OnlytextToSpeech(context,detectedText)
+                            viewModel.OnlytextToSpeech(context, detectedText)
 
                         }
-                    },enabled = state.isButtonEnabled
-                    ,
+                    }, enabled = state.isButtonEnabled,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 16.dp)
@@ -211,8 +221,10 @@ private fun startTextRecognition(
     previewView.controller = cameraController
 }
 
+
+
 @Preview
 @Composable
-fun CameraPreview(){
+fun CameraPreview() {
     CameraScreen()
 }
