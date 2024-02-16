@@ -1,9 +1,7 @@
 package de.yanneckreiss.mlkittutorial.ui.camera
 
 import android.content.Context
-import android.content.Intent
 import android.graphics.Color
-import android.media.AudioManager
 import android.speech.tts.TextToSpeech
 import android.view.ViewGroup
 import android.widget.LinearLayout
@@ -18,15 +16,11 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Button
 import androidx.compose.material.IconButton
 import androidx.compose.material.LocalContentColor
 import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.ListItemDefaults.contentColor
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -40,13 +34,15 @@ import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.Role.Companion.Button
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import de.yanneckreiss.cameraxtutorial.R
+import androidx.lifecycle.viewmodel.compose.viewModel
+import de.yanneckreiss.mlkittutorial.translate.TranslateViewModel
 
 @Composable
 fun CameraScreen() {
@@ -54,7 +50,9 @@ fun CameraScreen() {
 }
 
 @Composable
-private fun CameraContent() {
+private fun CameraContent(
+    viewModel: TranslateViewModel = viewModel()
+) {
 
     val context: Context = LocalContext.current
     val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
@@ -63,6 +61,8 @@ private fun CameraContent() {
     // Text to speech related variables
     var textToSpeechInitialized by remember { mutableStateOf(false) }
     var textToSpeech: TextToSpeech? by remember { mutableStateOf(null) }
+    val state by viewModel.state
+
 
 
     fun onTextUpdated(updatedText: String) {
@@ -149,19 +149,21 @@ private fun CameraContent() {
                     .background(White)
                     .padding(16.dp)
             ) {
-//                Text(
-//                    text = detectedText,
-//                    maxLines = 3,
-//                    overflow = TextOverflow.Ellipsis
-//                )
+                Text(
+                    text = detectedText,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis
+                )
                 val contentColor = LocalContentColor.current
                 // Button for Text-to-Speech
                 IconButton(
                     onClick = {
                         if (textToSpeechInitialized) {
-                            textToSpeech?.speak(detectedText, TextToSpeech.QUEUE_FLUSH, null, null)
+                            viewModel.OnlytextToSpeech(context,detectedText)
+
                         }
-                    },
+                    },enabled = state.isButtonEnabled
+                    ,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 16.dp)
@@ -207,4 +209,10 @@ private fun startTextRecognition(
 
     cameraController.bindToLifecycle(lifecycleOwner)
     previewView.controller = cameraController
+}
+
+@Preview
+@Composable
+fun CameraPreview(){
+    CameraScreen()
 }
