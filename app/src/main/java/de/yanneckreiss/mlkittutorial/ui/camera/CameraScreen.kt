@@ -1,5 +1,6 @@
 package de.yanneckreiss.mlkittutorial.ui.camera
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
@@ -11,18 +12,25 @@ import androidx.camera.core.AspectRatio
 import androidx.camera.view.CameraController
 import androidx.camera.view.LifecycleCameraController
 import androidx.camera.view.PreviewView
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.IconButton
 import androidx.compose.material.LocalContentColor
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Slider
+import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material3.Icon
@@ -37,18 +45,26 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color.Companion.White
+import androidx.compose.ui.graphics.Color.Companion.Yellow
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.modifier.modifierLocalProvider
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role.Companion.Button
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
+import com.google.accompanist.permissions.PermissionState
+import com.google.accompanist.permissions.rememberPermissionState
 import de.yanneckreiss.cameraxtutorial.R
+import kotlinx.coroutines.delay
 
 @Composable
 fun CameraScreen() {
@@ -60,12 +76,14 @@ private fun CameraContent() {
 
     val context: Context = LocalContext.current
     val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
-    val cameraController: LifecycleCameraController = remember { LifecycleCameraController(context) }
+    val cameraController: LifecycleCameraController =
+        remember { LifecycleCameraController(context) }
     var detectedText: String by remember { mutableStateOf("No text detected yet..") }
     // Text to speech related variables
     var textToSpeechInitialized by remember { mutableStateOf(false) }
     var textToSpeech: TextToSpeech? by remember { mutableStateOf(null) }
 
+    var zoomValue by remember { mutableStateOf(1f) }
 
     fun onTextUpdated(updatedText: String) {
         detectedText = updatedText
@@ -81,116 +99,127 @@ private fun CameraContent() {
         }
     }
 
+    var showMessage by remember { mutableStateOf(false) }
 
-    Scaffold(
+    val alpha by animateFloatAsState(
+        targetValue = if (showMessage) 1f else 0f,
+        animationSpec = if (showMessage) {
+            tween(durationMillis = 1000, easing = FastOutSlowInEasing)
+        } else {
+            keyframes {
+                durationMillis = 1000
+                1.0f at 0 // fade out 완료
+                0.0f at 1 using FastOutSlowInEasing // fade out 시작
+
+            }
+        }, label = ""
+    )
+
+
+    LaunchedEffect(Unit) {
+        showMessage = true
+        delay(2000)
+        showMessage = false
+    }
+
+    if (showMessage) {
+        Box(
+            modifier = Modifier
+                .alpha(alpha)
+                .graphicsLayer(alpha = alpha)
+                .fillMaxSize()
+                .padding(top = 50.dp),
+            contentAlignment = Alignment.TopCenter // 세로 정렬을 맨 위로 설정
+        ) {
+            Box(
+                modifier = Modifier
+                    .background(
+                        androidx.compose.ui.graphics.Color.Gray,
+                        shape = RoundedCornerShape(20.dp)
+                    )
+                    .padding(top = 5.dp, start = 10.dp, end = 10.dp, bottom = 10.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                androidx.compose.material3.Text(
+                    text = "Text Screen",
+                    color = White,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+    }
+
+    Box(
         modifier = Modifier.fillMaxSize(),
         //topBar = { TopAppBar() },
-    ) { paddingValues: PaddingValues ->
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = androidx.compose.ui.Alignment.BottomCenter
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(White),
         ) {
-            Column(
+            AndroidView(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .background(White),
-            ) {
-                Box(
-                    modifier = Modifier.fillMaxWidth()
-                        .background(White)
-                        .padding(5.dp),
-                    contentAlignment = Alignment.TopEnd // 버튼 오른쪽 상단에 배치??
-                ){
-                IconButton(
-                    onClick = {
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.icon_question),
-                        contentDescription = "question",
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            }
-
-                AndroidView(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    factory = { context ->
-                        PreviewView(context).apply {
-                            layoutParams = LinearLayout.LayoutParams(
-                                ViewGroup.LayoutParams.MATCH_PARENT,
-                                ViewGroup.LayoutParams.MATCH_PARENT
-                            )
-                            setBackgroundColor(Color.BLACK)
-                            implementationMode = PreviewView.ImplementationMode.COMPATIBLE
-                            scaleType = PreviewView.ScaleType.FILL_START
-                        }.also { previewView ->
-                            startTextRecognition(
-                                context = context,
-                                cameraController = cameraController,
-                                lifecycleOwner = lifecycleOwner,
-                                previewView = previewView,
-                                onDetectedTextUpdated = ::onTextUpdated
-                            )
-                        }.also {
-                        }
+                    .fillMaxSize(),
+                factory = { context ->
+                    PreviewView(context).apply {
+                        layoutParams = LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT
+                        )
+                        setBackgroundColor(Color.BLACK)
+                        implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+                        scaleType = PreviewView.ScaleType.FILL_START
+                    }.also { previewView ->
+                        startTextRecognition(
+                            context = context,
+                            cameraController = cameraController,
+                            lifecycleOwner = lifecycleOwner,
+                            previewView = previewView,
+                            onDetectedTextUpdated = ::onTextUpdated
+                        )
                     }
-                )
-
-            }
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(White)
-                    .padding(16.dp)
-            ) {
-                Text(
-                    text = detectedText,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis
-                )
-                val contentColor = LocalContentColor.current
-                // Button for Text-to-Speech
-                IconButton(
-                    onClick = {
-                        if (textToSpeechInitialized) {
-                            textToSpeech?.speak(detectedText, TextToSpeech.QUEUE_FLUSH, null, null)
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.icon_camera),
-                        contentDescription = "TTS",
-                        modifier = Modifier.fillMaxWidth()
-                    )
                 }
-//                ZoomSeekBar { zoomLevel ->
-//                    // 여기에서 zoomLevel 값을 사용하여 카메라 줌 조정
-//                }
-            }
+            )
+
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(color = Yellow, shape = RoundedCornerShape(8.dp))
+                .padding(10.dp),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            Text(
+                text = detectedText,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 
-    // Initialize Text-to-Speech when the composable is first composed
-    LaunchedEffect(Unit) {
-        initializeTextToSpeech()
-    }
+}
 
-    // Dispose of Text-to-Speech when the composable is removed
-    DisposableEffect(Unit) {
-        onDispose {
-            textToSpeech?.stop()
-            textToSpeech?.shutdown()
-        }
-    }
 
+// Initialize Text-to-Speech when the composable is first composed
+//    LaunchedEffect(Unit) {
+//        initializeTextToSpeech()
+//    }
+//
+//    // Dispose of Text-to-Speech when the composable is removed
+//    DisposableEffect(Unit) {
+//        onDispose {
+//            textToSpeech?.stop()
+//            textToSpeech?.shutdown()
+//        }
+//    }
+
+//}
+
+@Preview
+@Composable
+private fun Preview_CameraScreen() {
+    CameraContent()
 }
 
 private fun startTextRecognition(
@@ -201,7 +230,7 @@ private fun startTextRecognition(
     onDetectedTextUpdated: (String) -> Unit
 ) {
 
-    cameraController.imageAnalysisTargetSize = CameraController.OutputSize(AspectRatio.RATIO_16_9)
+    cameraController.imageAnalysisTargetSize = CameraController.OutputSize(AspectRatio.RATIO_4_3)
     cameraController.setImageAnalysisAnalyzer(
         ContextCompat.getMainExecutor(context),
         TextRecognitionAnalyzer(onDetectedTextUpdated = onDetectedTextUpdated)
@@ -211,24 +240,39 @@ private fun startTextRecognition(
     previewView.controller = cameraController
 }
 
-//@Composable
-//fun ZoomSeekBar(onZoomChange: (Int) -> Unit) {
-//    var zoomValue by remember { mutableStateOf(0f) }
-//
-//    Column(
-//        horizontalAlignment = Alignment.CenterHorizontally,
-//        modifier = Modifier,
-//    ) {
-//        Text(text = "Zoom Level: ${zoomValue.toInt()}")
-//        Slider(
-//            value = zoomValue,
-//            onValueChange = { newValue ->
-//                zoomValue = newValue
-//                onZoomChange(newValue.toInt())
-//            },
-//            valueRange = 0f..100f,
-//            steps = 1,
-//            modifier = Modifier.padding(horizontal = 16.dp)
-//        )
-//    }
-//}
+@Composable
+fun CameraWithZoomSlider(
+    zoomValue: Float,
+    onZoomChanged: (Float) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            elevation = 4.dp
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Slider(
+                    value = zoomValue,
+                    onValueChange = { newValue ->
+                        onZoomChanged(newValue)
+                    },
+                    valueRange = 1f..5f,
+                    steps = 50,
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .weight(1f)
+                )
+            }
+        }
+    }
+}
