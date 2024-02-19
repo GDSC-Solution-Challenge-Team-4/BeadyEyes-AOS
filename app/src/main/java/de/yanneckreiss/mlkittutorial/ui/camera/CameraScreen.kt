@@ -13,18 +13,18 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.BottomNavigation
-import androidx.compose.material.BottomNavigationItem
-import androidx.compose.material.ContentAlpha
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.IconButton
 import androidx.compose.material.LocalContentColor
 import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -46,16 +46,8 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import de.yanneckreiss.cameraxtutorial.R
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import androidx.navigation.NavDestination
-import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import de.yanneckreiss.mlkittutorial.translate.TranslateViewModel
-import de.yanneckreiss.mlkittutorial.ui.navigate.BottomNavItem
-import de.yanneckreiss.mlkittutorial.ui.navigate.NavigationGraph
+import de.yanneckreiss.mlkittutorial.ui.DialogViewModel
 
 @Composable
 fun CameraScreen() {
@@ -64,18 +56,20 @@ fun CameraScreen() {
 
 @Composable
 private fun CameraContent(
-    viewModel: TranslateViewModel = viewModel()
+    viewModel: TranslateViewModel = viewModel(),
+    dialogViewModel: DialogViewModel = viewModel()
 ) {
-
+    val state by viewModel.state
     val context: Context = LocalContext.current
     val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
     val cameraController: LifecycleCameraController =
         remember { LifecycleCameraController(context) }
     var detectedText: String by remember { mutableStateOf("No text detected yet..") }
+    var showedText : String by remember { mutableStateOf("No text detected yet..") }
     // Text to speech related variables
     var textToSpeechInitialized by remember { mutableStateOf(false) }
     var textToSpeech: TextToSpeech? by remember { mutableStateOf(null) }
-    val state by viewModel.state
+
 
 
     fun onTextUpdated(updatedText: String) {
@@ -170,8 +164,9 @@ private fun CameraContent(
                 IconButton(
                     onClick = {
                         if (textToSpeechInitialized) {
-                            viewModel.OnlytextToSpeech(context, detectedText)
-
+                            showedText = detectedText
+                            viewModel.OnlytextToSpeech(context, showedText)
+                            dialogViewModel.shortDialogOn()
                         }
                     }, enabled = state.isButtonEnabled,
                     modifier = Modifier
@@ -200,8 +195,65 @@ private fun CameraContent(
             textToSpeech?.shutdown()
         }
     }
+    if (dialogViewModel.isShortDialogShown) {
+        AlertDialog(onDismissRequest = {
+            dialogViewModel.onDismissShortDialog()
+        }, confirmButton = {
+           Button(onClick = {
+               dialogViewModel.onDismissShortDialog()
+               dialogViewModel.fullDialogOn()
+           }) {
+               Text(text = "확대")
+           }
+        }, dismissButton = {
+            Button(onClick = {
+                dialogViewModel.onDismissShortDialog()
+            }) {
+                Text(text = "나가기")
+            }
+        }, title = {
+            Text(text = "감지된 문자")
+        }, text = {
+            Text(
+                text = showedText,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
 
+        )
+
+    }
+    if (dialogViewModel.isFullDialogShown) {
+        AlertDialog(onDismissRequest = {
+            dialogViewModel.onDismissFullDialog()
+        }, confirmButton = {
+            Button(onClick = {
+                dialogViewModel.onDismissFullDialog()
+                dialogViewModel.shortDialogOn()
+            }) {
+                Text(text = "원래대로")
+            }
+        }, dismissButton = {
+            Button(onClick = {
+                dialogViewModel.onDismissFullDialog()
+            }) {
+                Text(text = "나가기")
+            }
+        }, title = {
+            Text(text = "감지된 문자")
+        }, text = {
+            Text(
+                text = showedText,
+                Modifier.verticalScroll(rememberScrollState())
+            )
+        }
+
+        )
+    }
 }
+
+
 
 private fun startTextRecognition(
     context: Context,
@@ -220,7 +272,6 @@ private fun startTextRecognition(
     cameraController.bindToLifecycle(lifecycleOwner)
     previewView.controller = cameraController
 }
-
 
 
 @Preview

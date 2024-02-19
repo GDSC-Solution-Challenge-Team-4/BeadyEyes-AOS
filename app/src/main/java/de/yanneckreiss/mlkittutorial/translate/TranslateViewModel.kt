@@ -171,8 +171,11 @@ public class TranslateViewModel : ViewModel() {
                 )
             }
     }
-    fun OnlytextToSpeech(context: Context,
-                                 text :String) {
+
+    fun OnlytextToSpeech(
+        context: Context,
+        text: String
+    ) {
         //disable button when function start
 
         textToSpeech = TextToSpeech(
@@ -196,7 +199,7 @@ public class TranslateViewModel : ViewModel() {
             }
 
             textToSpeech?.setOnUtteranceProgressListener(
-                object : UtteranceProgressListener(){
+                object : UtteranceProgressListener() {
                     override fun onStart(utteranceId: String?) {
                         _state.value = _state.value.copy(
                             isButtonEnabled = false
@@ -210,8 +213,18 @@ public class TranslateViewModel : ViewModel() {
                     }
 
                     override fun onError(utteranceId: String?) {
+                        Log.e("Error","에러가 발생했습니다${it.toString()}")
                     }
 
+                    override fun onRangeStart(
+                        utteranceId: String?,
+                        start: Int,
+                        end: Int,
+                        frame: Int
+                    ) {
+                        changeHighlight(standbyIndex + start, standbyIndex + end);
+                        lastPlayIndex = start;
+                    }
                 }
             )
         }
