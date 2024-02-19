@@ -115,6 +115,7 @@ private fun CameraContent(
         showMessage = false
     }
 
+
     if (showMessage) {
         Box(
             modifier = Modifier
@@ -177,60 +178,6 @@ private fun CameraContent(
 
         }
 
-    }
-    if (dialogViewModel.isShortDialogShown) {
-        AlertDialog(onDismissRequest = {
-            dialogViewModel.onDismissShortDialog()
-        }, confirmButton = {
-            Button(onClick = {
-                dialogViewModel.onDismissShortDialog()
-                dialogViewModel.fullDialogOn()
-            }) {
-                Text(text = "확대")
-            }
-        }, dismissButton = {
-            Button(onClick = {
-                dialogViewModel.onDismissShortDialog()
-            }) {
-                Text(text = "나가기")
-            }
-        }, title = {
-            Text(text = "감지된 문자")
-        }, text = {
-            Text(
-                text = showedText,
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
-
-        )
-
-    }
-    if (dialogViewModel.isFullDialogShown) {
-        AlertDialog(onDismissRequest = {
-            dialogViewModel.onDismissFullDialog()
-        }, confirmButton = {
-            Button(onClick = {
-                dialogViewModel.onDismissFullDialog()
-                dialogViewModel.shortDialogOn()
-            }) {
-                Text(text = "원래대로")
-            }
-        }, dismissButton = {
-            Button(onClick = {
-                dialogViewModel.onDismissFullDialog()
-            }) {
-                Text(text = "나가기")
-            }
-        }, title = {
-            Text(text = "감지된 문자")
-        }, text = {
-            Text(
-                text = showedText,
-                Modifier.verticalScroll(rememberScrollState())
-            )
-        })
     }
 }
 

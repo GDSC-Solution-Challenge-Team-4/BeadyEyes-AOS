@@ -27,13 +27,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.LocalContentColor
 import androidx.compose.material.Tab
 import androidx.compose.material.TabRow
 import androidx.compose.material.Text
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -56,12 +60,15 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import de.yanneckreiss.cameraxtutorial.R
+import de.yanneckreiss.mlkittutorial.ui.DialogViewModel
 import de.yanneckreiss.mlkittutorial.ui.MainScreen
 import de.yanneckreiss.mlkittutorial.ui.RecordAndConvertToText
 import de.yanneckreiss.mlkittutorial.ui.camera.CameraScreen
@@ -84,6 +91,7 @@ class MainActivity : ComponentActivity() {
             var textToSpeech: TextToSpeech? by remember { mutableStateOf(null) }
 
             var sttValue by remember { mutableStateOf("") }
+            val dialogViewModel : DialogViewModel = viewModel()
 
             fun initializeTextToSpeech() {
                 if (!textToSpeechInitialized) {
@@ -280,6 +288,61 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     }
+                }
+                if (dialogViewModel.isShortDialogShown) {
+                    AlertDialog(onDismissRequest = {
+                        dialogViewModel.onDismissShortDialog()
+                    }, confirmButton = {
+                        Button(onClick = {
+                            dialogViewModel.onDismissShortDialog()
+                            dialogViewModel.fullDialogOn()
+                        }) {
+                            Text(text = "확대")
+                        }
+                    }, dismissButton = {
+                        Button(onClick = {
+                            dialogViewModel.onDismissShortDialog()
+                        }) {
+                            Text(text = "나가기")
+                        }
+                    }, title = {
+                        Text(text = "감지된 문자")
+                    }, text = {
+                        Text(
+                            text = showedText,
+                            maxLines = 3,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+
+                    )
+
+                }
+                if (dialogViewModel.isFullDialogShown) {
+                    AlertDialog(onDismissRequest = {
+                        dialogViewModel.onDismissFullDialog()
+                    }, confirmButton = {
+                        Button(onClick = {
+                            dialogViewModel::onDismissFullDialog,
+                            dialogViewModel::shortDialogOn
+                        }
+                        ) {
+                            Text(text = "원래대로")
+                        }
+                    }, dismissButton = {
+                        Button(onClick = {
+                            dialogViewModel.onDismissFullDialog()
+                        }) {
+                            Text(text = "나가기")
+                        }
+                    }, title = {
+                        Text(text = "감지된 문자")
+                    }, text = {
+                        Text(
+                            text = showedText,
+                            Modifier.verticalScroll(rememberScrollState())
+                        )
+                    })
                 }
             }
         }
