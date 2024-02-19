@@ -1,6 +1,5 @@
 package de.yanneckreiss.mlkittutorial.ui.camera
 
-import android.Manifest
 import android.content.Context
 import android.graphics.Color
 import android.speech.tts.TextToSpeech
@@ -17,7 +16,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,17 +24,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
-import androidx.compose.material.IconButton
-import androidx.compose.material.LocalContentColor
-import androidx.compose.material.Scaffold
 import androidx.compose.material.Slider
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,13 +39,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color.Companion.White
-import androidx.compose.ui.graphics.Color.Companion.Yellow
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.modifier.modifierLocalProvider
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.Role.Companion.Button
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -60,9 +49,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
-import com.google.accompanist.permissions.PermissionState
-import com.google.accompanist.permissions.rememberPermissionState
-import de.yanneckreiss.cameraxtutorial.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import de.yanneckreiss.mlkittutorial.translate.TranslateViewModel
 import de.yanneckreiss.mlkittutorial.ui.DialogViewModel
@@ -84,7 +70,7 @@ private fun CameraContent(
     val cameraController: LifecycleCameraController =
         remember { LifecycleCameraController(context) }
     var detectedText: String by remember { mutableStateOf("No text detected yet..") }
-    var showedText : String by remember { mutableStateOf("No text detected yet..") }
+    var showedText: String by remember { mutableStateOf("No text detected yet..") }
     // Text to speech related variables
     var textToSpeechInitialized by remember { mutableStateOf(false) }
     var textToSpeech: TextToSpeech? by remember { mutableStateOf(null) }
@@ -190,30 +176,18 @@ private fun CameraContent(
             )
 
         }
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(color = Yellow, shape = RoundedCornerShape(8.dp))
-                .padding(10.dp),
-            contentAlignment = Alignment.BottomCenter
-        ) {
-            Text(
-                text = detectedText,
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
+
     }
     if (dialogViewModel.isShortDialogShown) {
         AlertDialog(onDismissRequest = {
             dialogViewModel.onDismissShortDialog()
         }, confirmButton = {
-           Button(onClick = {
-               dialogViewModel.onDismissShortDialog()
-               dialogViewModel.fullDialogOn()
-           }) {
-               Text(text = "확대")
-           }
+            Button(onClick = {
+                dialogViewModel.onDismissShortDialog()
+                dialogViewModel.fullDialogOn()
+            }) {
+                Text(text = "확대")
+            }
         }, dismissButton = {
             Button(onClick = {
                 dialogViewModel.onDismissShortDialog()
@@ -256,9 +230,7 @@ private fun CameraContent(
                 text = showedText,
                 Modifier.verticalScroll(rememberScrollState())
             )
-        }
-
-        )
+        })
     }
 }
 
