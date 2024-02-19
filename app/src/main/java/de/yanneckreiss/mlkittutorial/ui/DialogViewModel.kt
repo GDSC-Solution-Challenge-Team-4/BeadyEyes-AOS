@@ -11,6 +11,9 @@ class DialogViewModel : ViewModel() {
     var isFullDialogShown by mutableStateOf(false)
         private set
 
+    var isHelpDialogShown by mutableStateOf(false)
+        private set
+
     fun shortDialogOn(){
         isShortDialogShown = true
     }
@@ -24,5 +27,13 @@ class DialogViewModel : ViewModel() {
 
     fun onDismissFullDialog(){
         isFullDialogShown = false
+    }
+
+    fun helpDialogOn(){
+        isHelpDialogShown = true
+    }
+
+    fun onDismissHelpDialog(){
+        isHelpDialogShown = false
     }
 }

@@ -1,4 +1,4 @@
-package de.yanneckreiss.mlkittutorial.translate
+package de.yanneckreiss.mlkittutorial.ui.translate
 
 
 import android.content.ContentValues.TAG
@@ -17,7 +17,7 @@ import com.google.mlkit.nl.translate.Translator
 import com.google.mlkit.nl.translate.TranslatorOptions
 import java.util.Locale
 
-public class TranslateViewModel : ViewModel() {
+ class TranslateViewModel : ViewModel() {
     private val _state = mutableStateOf(TranslateState())
     val state: State<TranslateState> = _state
 
@@ -216,15 +216,6 @@ public class TranslateViewModel : ViewModel() {
                         Log.e("Error","에러가 발생했습니다${it.toString()}")
                     }
 
-                    override fun onRangeStart(
-                        utteranceId: String?,
-                        start: Int,
-                        end: Int,
-                        frame: Int
-                    ) {
-                        changeHighlight(standbyIndex + start, standbyIndex + end);
-                        lastPlayIndex = start;
-                    }
                 }
             )
         }

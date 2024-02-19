@@ -20,15 +20,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
 import androidx.compose.material.Slider
 import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -43,28 +37,27 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
-import de.yanneckreiss.mlkittutorial.translate.TranslateViewModel
+import de.yanneckreiss.mlkittutorial.ui.translate.TranslateViewModel
 import de.yanneckreiss.mlkittutorial.ui.DialogViewModel
 import kotlinx.coroutines.delay
 
 @Composable
-fun CameraScreen() {
-    CameraContent()
+fun CameraScreen(text: String, onTextValueChange: (String) -> Unit) {
+    CameraContent(text, onTextValueChange)
 }
 
 @Composable
 private fun CameraContent(
+    text: String,
+    onTextValueChange: (String) -> Unit,
     viewModel: TranslateViewModel = viewModel(),
     dialogViewModel: DialogViewModel = viewModel()
 ) {
-    val state by viewModel.state
     val context: Context = LocalContext.current
     val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
     val cameraController: LifecycleCameraController =
@@ -80,6 +73,7 @@ private fun CameraContent(
 
     fun onTextUpdated(updatedText: String) {
         detectedText = updatedText
+        onTextValueChange(detectedText)
     }
 
     fun initializeTextToSpeech() {
@@ -197,11 +191,6 @@ private fun CameraContent(
 
 //}
 
-@Preview
-@Composable
-private fun Preview_CameraScreen() {
-    CameraContent()
-}
 
 private fun startTextRecognition(
     context: Context,

@@ -1,4 +1,4 @@
-package de.yanneckreiss.mlkittutorial.translate
+package de.yanneckreiss.mlkittutorial.ui.translate
 
 data class TranslateState(
     val isButtonEnabled: Boolean = true,

@@ -7,16 +7,9 @@ import android.speech.tts.TextToSpeech
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.keyframes
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Arrangement.End
-import androidx.compose.foundation.layout.Arrangement.Vertical
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,19 +21,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
-import androidx.compose.material.LocalContentColor
-import androidx.compose.material.Tab
-import androidx.compose.material.TabRow
 import androidx.compose.material.Text
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
@@ -50,13 +36,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Gray
-import androidx.compose.ui.graphics.Color.Companion.White
-import androidx.compose.ui.graphics.Color.Companion.Yellow
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -70,12 +51,12 @@ import com.google.accompanist.permissions.rememberPermissionState
 import de.yanneckreiss.cameraxtutorial.R
 import de.yanneckreiss.mlkittutorial.ui.DialogViewModel
 import de.yanneckreiss.mlkittutorial.ui.MainScreen
+import de.yanneckreiss.mlkittutorial.ui.Main.MainViewModel
 import de.yanneckreiss.mlkittutorial.ui.RecordAndConvertToText
-import de.yanneckreiss.mlkittutorial.ui.camera.CameraScreen
 import de.yanneckreiss.mlkittutorial.ui.money.ui.MoneyScreen
 import de.yanneckreiss.mlkittutorial.ui.pointer.PointerScreen
 import de.yanneckreiss.mlkittutorial.ui.theme.JetpackComposeMLKitTutorialTheme
-import kotlinx.coroutines.delay
+import de.yanneckreiss.mlkittutorial.ui.translate.TranslateViewModel
 
 
 class MainActivity : ComponentActivity() {
@@ -91,7 +72,11 @@ class MainActivity : ComponentActivity() {
             var textToSpeech: TextToSpeech? by remember { mutableStateOf(null) }
 
             var sttValue by remember { mutableStateOf("") }
-            val dialogViewModel : DialogViewModel = viewModel()
+            val dialogViewModel: DialogViewModel = viewModel()
+            val mainViewModel: MainViewModel = viewModel()
+            val translateViewModel: TranslateViewModel = viewModel()
+
+            var showedText = "not foun yet"
 
             fun initializeTextToSpeech() {
                 if (!textToSpeechInitialized) {
@@ -187,7 +172,10 @@ class MainActivity : ComponentActivity() {
 //                                }
 //                            }
                             IconButton(
-                                onClick = { /*TODO 여기 버튼 누르면 도움말 dialog!*/ },
+                                onClick = {
+                                    dialogViewModel.helpDialogOn()
+                                    translateViewModel.OnlytextToSpeech(context ,"도움말 string")
+                                },
                                 modifier = Modifier
                                     .padding(5.dp)
                             ) {
@@ -249,7 +237,7 @@ class MainActivity : ComponentActivity() {
                                                 null,
                                                 null
                                             )
-                                            MainScreen()
+                                            MainScreen(mainViewModel)
                                         }
 
                                         2 -> {
@@ -273,10 +261,15 @@ class MainActivity : ComponentActivity() {
                         ) {
                             IconButton(
                                 onClick = {
-                                    //                                    if (textToSpeechInitialized) {
-                                    //                                        textToSpeech?.speak(detectedText, TextToSpeech.QUEUE_FLUSH, null, null)
-                                    //                                    }
-                                },
+                                    if (textToSpeechInitialized) {
+                                        showedText = mainViewModel.state.value.detectedtext
+                                        translateViewModel.OnlytextToSpeech(
+                                            context,
+                                            showedText
+                                        )
+                                        dialogViewModel.shortDialogOn()
+                                    }
+                                }, enabled = translateViewModel.state.value.isButtonEnabled,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(top = 15.dp, bottom = 15.dp)
@@ -317,14 +310,14 @@ class MainActivity : ComponentActivity() {
 
                     )
 
-                }
+                } // 3줄짜리 작은 text dialog
                 if (dialogViewModel.isFullDialogShown) {
                     AlertDialog(onDismissRequest = {
                         dialogViewModel.onDismissFullDialog()
                     }, confirmButton = {
                         Button(onClick = {
-                            dialogViewModel::onDismissFullDialog,
-                            dialogViewModel::shortDialogOn
+                            dialogViewModel.onDismissFullDialog()
+                            dialogViewModel.shortDialogOn()
                         }
                         ) {
                             Text(text = "원래대로")
@@ -343,7 +336,38 @@ class MainActivity : ComponentActivity() {
                             Modifier.verticalScroll(rememberScrollState())
                         )
                     })
-                }
+                }// 스크롤 되는 text dialog
+                if (dialogViewModel.isHelpDialogShown) {
+                    AlertDialog(onDismissRequest = {
+                        dialogViewModel.onDismissHelpDialog()
+                    }, confirmButton = {
+                        Button(onClick = {
+
+                        }) {
+                            Text(text = "한번 더 듣기")
+                        }
+                    }, dismissButton = {
+                        Button(onClick = {
+                            dialogViewModel.onDismissHelpDialog()
+                        }) {
+                            Text(text = "나가기")
+                        }
+                    }, title = {
+                        Text(
+                            text = "도움말",
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center
+                        )
+                    }, text = {
+                        Text(
+                            text = "도움말입니다 잘 읽어 보아요",
+                            modifier = Modifier.verticalScroll(rememberScrollState())
+                        )
+                    }
+
+                    )
+
+                }// 도움말 dialog
             }
         }
     }
@@ -356,7 +380,7 @@ data class TabItem(
 )
 
 fun ttsIndex(index: Int): String {
-    var string: String = ""
+    var string = ""
     when (index) {
         0 -> string = "Currancy Screen"
         1 -> string = "Text Screen"

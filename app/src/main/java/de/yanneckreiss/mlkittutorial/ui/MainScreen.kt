@@ -8,34 +8,39 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import de.yanneckreiss.mlkittutorial.ui.Main.MainViewModel
 import de.yanneckreiss.mlkittutorial.ui.camera.CameraScreen
 import de.yanneckreiss.mlkittutorial.ui.no_permission.NoPermissionScreen
 
 @SuppressLint("SuspiciousIndentation")
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun MainScreen() {
+fun MainScreen(mainViewModel: MainViewModel) {
 
     val cameraPermissionState: PermissionState = rememberPermissionState(android.Manifest.permission.CAMERA)
 
             MainContent(
             hasPermission = cameraPermissionState.status.isGranted,
-            onRequestPermission = cameraPermissionState::launchPermissionRequest
-        )
+            onRequestPermission = cameraPermissionState::launchPermissionRequest,
+                text = mainViewModel.state.value.detectedtext,
+                onTextValueChange = { text -> mainViewModel.onTextValueChange(text) }
+
+            )
 
 
 
 }
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 private fun MainContent(
     hasPermission: Boolean,
-    onRequestPermission: () -> Unit
+    onRequestPermission: () -> Unit,
+    text:String,
+    onTextValueChange :(String) -> Unit
 ) {
 
     if (hasPermission) {
-        CameraScreen()
+        CameraScreen(text,onTextValueChange)
     } else {
         NoPermissionScreen(onRequestPermission)
     }
