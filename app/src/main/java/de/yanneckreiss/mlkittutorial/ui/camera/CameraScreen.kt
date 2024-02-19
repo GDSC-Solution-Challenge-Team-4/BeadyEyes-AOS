@@ -2,9 +2,7 @@ package de.yanneckreiss.mlkittutorial.ui.camera
 
 import android.Manifest
 import android.content.Context
-import android.content.Intent
 import android.graphics.Color
-import android.media.AudioManager
 import android.speech.tts.TextToSpeech
 import android.view.ViewGroup
 import android.widget.LinearLayout
@@ -24,6 +22,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.IconButton
@@ -32,10 +32,9 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.Slider
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.ListItemDefaults.contentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -64,6 +63,9 @@ import androidx.lifecycle.LifecycleOwner
 import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.rememberPermissionState
 import de.yanneckreiss.cameraxtutorial.R
+import androidx.lifecycle.viewmodel.compose.viewModel
+import de.yanneckreiss.mlkittutorial.translate.TranslateViewModel
+import de.yanneckreiss.mlkittutorial.ui.DialogViewModel
 import kotlinx.coroutines.delay
 
 @Composable
@@ -72,18 +74,23 @@ fun CameraScreen() {
 }
 
 @Composable
-private fun CameraContent() {
-
+private fun CameraContent(
+    viewModel: TranslateViewModel = viewModel(),
+    dialogViewModel: DialogViewModel = viewModel()
+) {
+    val state by viewModel.state
     val context: Context = LocalContext.current
     val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
     val cameraController: LifecycleCameraController =
         remember { LifecycleCameraController(context) }
     var detectedText: String by remember { mutableStateOf("No text detected yet..") }
+    var showedText : String by remember { mutableStateOf("No text detected yet..") }
     // Text to speech related variables
     var textToSpeechInitialized by remember { mutableStateOf(false) }
     var textToSpeech: TextToSpeech? by remember { mutableStateOf(null) }
 
     var zoomValue by remember { mutableStateOf(1f) }
+
 
     fun onTextUpdated(updatedText: String) {
         detectedText = updatedText
@@ -197,7 +204,62 @@ private fun CameraContent() {
             )
         }
     }
+    if (dialogViewModel.isShortDialogShown) {
+        AlertDialog(onDismissRequest = {
+            dialogViewModel.onDismissShortDialog()
+        }, confirmButton = {
+           Button(onClick = {
+               dialogViewModel.onDismissShortDialog()
+               dialogViewModel.fullDialogOn()
+           }) {
+               Text(text = "확대")
+           }
+        }, dismissButton = {
+            Button(onClick = {
+                dialogViewModel.onDismissShortDialog()
+            }) {
+                Text(text = "나가기")
+            }
+        }, title = {
+            Text(text = "감지된 문자")
+        }, text = {
+            Text(
+                text = showedText,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
 
+        )
+
+    }
+    if (dialogViewModel.isFullDialogShown) {
+        AlertDialog(onDismissRequest = {
+            dialogViewModel.onDismissFullDialog()
+        }, confirmButton = {
+            Button(onClick = {
+                dialogViewModel.onDismissFullDialog()
+                dialogViewModel.shortDialogOn()
+            }) {
+                Text(text = "원래대로")
+            }
+        }, dismissButton = {
+            Button(onClick = {
+                dialogViewModel.onDismissFullDialog()
+            }) {
+                Text(text = "나가기")
+            }
+        }, title = {
+            Text(text = "감지된 문자")
+        }, text = {
+            Text(
+                text = showedText,
+                Modifier.verticalScroll(rememberScrollState())
+            )
+        }
+
+        )
+    }
 }
 
 
