@@ -43,7 +43,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import de.yanneckreiss.mlkittutorial.ui.translate.TranslateViewModel
-import de.yanneckreiss.mlkittutorial.ui.DialogViewModel
+import de.yanneckreiss.mlkittutorial.ui.dialog.DialogViewModel
 import kotlinx.coroutines.delay
 
 @Composable

@@ -1,4 +1,4 @@
-package de.yanneckreiss.mlkittutorial.ui
+package de.yanneckreiss.mlkittutorial.ui.dialog
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf

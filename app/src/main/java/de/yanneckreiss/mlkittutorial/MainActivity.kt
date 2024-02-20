@@ -49,7 +49,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import de.yanneckreiss.cameraxtutorial.R
-import de.yanneckreiss.mlkittutorial.ui.DialogViewModel
+import de.yanneckreiss.mlkittutorial.ui.dialog.DialogViewModel
 import de.yanneckreiss.mlkittutorial.ui.MainScreen
 import de.yanneckreiss.mlkittutorial.ui.Main.MainViewModel
 import de.yanneckreiss.mlkittutorial.ui.RecordAndConvertToText
@@ -76,7 +76,7 @@ class MainActivity : ComponentActivity() {
             val mainViewModel: MainViewModel = viewModel()
             val translateViewModel: TranslateViewModel = viewModel()
 
-            var showedText = "not foun yet"
+            var showedText = "not found yet"
 
             fun initializeTextToSpeech() {
                 if (!textToSpeechInitialized) {
