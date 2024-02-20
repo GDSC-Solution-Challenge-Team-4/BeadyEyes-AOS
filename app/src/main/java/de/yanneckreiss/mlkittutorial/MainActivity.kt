@@ -3,7 +3,7 @@ package de.yanneckreiss.mlkittutorial
 import android.Manifest
 import android.content.Context
 import android.os.Bundle
-import android.speech.tts.TextToSpeech
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -44,20 +44,20 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Observer
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import de.yanneckreiss.cameraxtutorial.R
-import de.yanneckreiss.mlkittutorial.ui.dialog.DialogViewModel
-import de.yanneckreiss.mlkittutorial.ui.MainScreen
 import de.yanneckreiss.mlkittutorial.ui.Main.MainViewModel
+import de.yanneckreiss.mlkittutorial.ui.MainScreen
 import de.yanneckreiss.mlkittutorial.ui.RecordAndConvertToText
+import de.yanneckreiss.mlkittutorial.ui.dialog.DialogViewModel
 import de.yanneckreiss.mlkittutorial.ui.money.ui.MoneyScreen
 import de.yanneckreiss.mlkittutorial.ui.pointer.PointerScreen
 import de.yanneckreiss.mlkittutorial.ui.theme.JetpackComposeMLKitTutorialTheme
 import de.yanneckreiss.mlkittutorial.ui.translate.TranslateViewModel
-
 
 class MainActivity : ComponentActivity() {
 
@@ -68,8 +68,6 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val context: Context = LocalContext.current
-            var textToSpeechInitialized by remember { mutableStateOf(false) }
-            var textToSpeech: TextToSpeech? by remember { mutableStateOf(null) }
 
             var sttValue by remember { mutableStateOf("") }
             val dialogViewModel: DialogViewModel = viewModel()
@@ -78,15 +76,7 @@ class MainActivity : ComponentActivity() {
 
             var showedText = "not found yet"
 
-            fun initializeTextToSpeech() {
-                if (!textToSpeechInitialized) {
-                    textToSpeech = TextToSpeech(context) { status ->
-                        if (status == TextToSpeech.SUCCESS) {
-                            textToSpeechInitialized = true
-                        }
-                    }
-                }
-            }
+            //tts
 
             val permissionState = rememberPermissionState(
                 permission = Manifest.permission.RECORD_AUDIO
@@ -174,7 +164,7 @@ class MainActivity : ComponentActivity() {
                             IconButton(
                                 onClick = {
                                     dialogViewModel.helpDialogOn()
-                                    translateViewModel.OnlytextToSpeech(context ,"도움말 string")
+                                    translateViewModel.OnlytextToSpeech(context, "도움말 string")
                                 },
                                 modifier = Modifier
                                     .padding(5.dp)
@@ -219,35 +209,20 @@ class MainActivity : ComponentActivity() {
                                     }
                                     when (index) {
                                         0 -> {
-                                            initializeTextToSpeech()
-                                            textToSpeech?.speak(
-                                                string,
-                                                TextToSpeech.QUEUE_FLUSH,
-                                                null,
-                                                null
-                                            )
+                                            mainViewModel.initializeTextToSpeech(context)
+                                            mainViewModel.startPlay(string)
                                             MoneyScreen()
                                         }
 
                                         1 -> {
-                                            initializeTextToSpeech()
-                                            textToSpeech?.speak(
-                                                string,
-                                                TextToSpeech.QUEUE_FLUSH,
-                                                null,
-                                                null
-                                            )
+                                            mainViewModel.initializeTextToSpeech(context)
+                                            mainViewModel.startPlay(string)
                                             MainScreen(mainViewModel)
                                         }
 
                                         2 -> {
-                                            initializeTextToSpeech()
-                                            textToSpeech?.speak(
-                                                string,
-                                                TextToSpeech.QUEUE_FLUSH,
-                                                null,
-                                                null
-                                            )
+                                            mainViewModel.initializeTextToSpeech(context)
+                                            mainViewModel.startPlay(string)
                                             PointerScreen()
                                         }
                                     }
@@ -261,14 +236,12 @@ class MainActivity : ComponentActivity() {
                         ) {
                             IconButton(
                                 onClick = {
-                                    if (textToSpeechInitialized) {
                                         showedText = mainViewModel.state.value.detectedtext
-                                        translateViewModel.OnlytextToSpeech(
-                                            context,
+                                        mainViewModel.startPlay(
                                             showedText
                                         )
                                         dialogViewModel.shortDialogOn()
-                                    }
+
                                 }, enabled = translateViewModel.state.value.isButtonEnabled,
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -285,6 +258,7 @@ class MainActivity : ComponentActivity() {
                 if (dialogViewModel.isShortDialogShown) {
                     AlertDialog(onDismissRequest = {
                         dialogViewModel.onDismissShortDialog()
+                        mainViewModel.stopPlay()
                     }, confirmButton = {
                         Button(onClick = {
                             dialogViewModel.onDismissShortDialog()
@@ -295,6 +269,7 @@ class MainActivity : ComponentActivity() {
                     }, dismissButton = {
                         Button(onClick = {
                             dialogViewModel.onDismissShortDialog()
+                            mainViewModel.stopPlay()
                         }) {
                             Text(text = "나가기")
                         }
@@ -314,17 +289,19 @@ class MainActivity : ComponentActivity() {
                 if (dialogViewModel.isFullDialogShown) {
                     AlertDialog(onDismissRequest = {
                         dialogViewModel.onDismissFullDialog()
+                        mainViewModel.stopPlay()
                     }, confirmButton = {
                         Button(onClick = {
-                            dialogViewModel.onDismissFullDialog()
-                            dialogViewModel.shortDialogOn()
+                            mainViewModel.clearAll()
+                            mainViewModel.startPlay(showedText)
                         }
                         ) {
-                            Text(text = "원래대로")
+                            Text(text = " 한번 더 읽기")
                         }
                     }, dismissButton = {
                         Button(onClick = {
                             dialogViewModel.onDismissFullDialog()
+                            mainViewModel.stopPlay()
                         }) {
                             Text(text = "나가기")
                         }
@@ -368,6 +345,10 @@ class MainActivity : ComponentActivity() {
                     )
 
                 }// 도움말 dialog
+                //toast message
+                mainViewModel.toastMessage.observe(this, Observer {
+                    Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
+                })
             }
         }
     }

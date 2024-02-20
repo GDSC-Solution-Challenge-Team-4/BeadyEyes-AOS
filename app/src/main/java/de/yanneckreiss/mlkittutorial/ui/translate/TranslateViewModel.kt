@@ -81,6 +81,55 @@ import java.util.Locale
         }
 
     }
+     fun OnlytextToSpeech(
+         context: Context,
+         text: String
+     ) {
+         //disable button when function start
+
+         textToSpeech = TextToSpeech(
+             context
+         ) {
+             //this lamda block provide us code
+             //if successfull or error
+             if (it == TextToSpeech.SUCCESS) {
+                 textToSpeech?.let { txtToSpeech ->
+                     txtToSpeech.language = Locale.getDefault()
+                     //speed of audio
+                     txtToSpeech.setSpeechRate(1.0f)
+                     txtToSpeech.speak(
+                         text,
+                         TextToSpeech.QUEUE_ADD,
+                         null,
+                         null
+                     )
+                     //this will produce sound now enable the button
+                 }
+             }
+
+             textToSpeech?.setOnUtteranceProgressListener(
+                 object : UtteranceProgressListener() {
+                     override fun onStart(utteranceId: String?) {
+                         _state.value = _state.value.copy(
+                             isButtonEnabled = false
+                         )
+                     }
+
+                     override fun onDone(utteranceId: String?) {
+                         _state.value = _state.value.copy(
+                             isButtonEnabled = true
+                         )
+                     }
+
+                     override fun onError(utteranceId: String?) {
+                         Log.e("Error","에러가 발생했습니다${it.toString()}")
+                     }
+
+                 }
+             )
+         }
+
+     }
 
     fun onTextToBeTranslatedChange(text: String) {
         _state.value = state.value.copy(
@@ -172,54 +221,6 @@ import java.util.Locale
             }
     }
 
-    fun OnlytextToSpeech(
-        context: Context,
-        text: String
-    ) {
-        //disable button when function start
 
-        textToSpeech = TextToSpeech(
-            context
-        ) {
-            //this lamda block provide us code
-            //if successfull or error
-            if (it == TextToSpeech.SUCCESS) {
-                textToSpeech?.let { txtToSpeech ->
-                    txtToSpeech.language = Locale.getDefault()
-                    //speed of audio
-                    txtToSpeech.setSpeechRate(1.0f)
-                    txtToSpeech.speak(
-                        text,
-                        TextToSpeech.QUEUE_ADD,
-                        null,
-                        null
-                    )
-                    //this will produce sound now enable the button
-                }
-            }
-
-            textToSpeech?.setOnUtteranceProgressListener(
-                object : UtteranceProgressListener() {
-                    override fun onStart(utteranceId: String?) {
-                        _state.value = _state.value.copy(
-                            isButtonEnabled = false
-                        )
-                    }
-
-                    override fun onDone(utteranceId: String?) {
-                        _state.value = _state.value.copy(
-                            isButtonEnabled = true
-                        )
-                    }
-
-                    override fun onError(utteranceId: String?) {
-                        Log.e("Error","에러가 발생했습니다${it.toString()}")
-                    }
-
-                }
-            )
-        }
-
-    }
 }
 

@@ -2,7 +2,6 @@ package de.yanneckreiss.mlkittutorial.ui.camera
 
 import android.content.Context
 import android.graphics.Color
-import android.speech.tts.TextToSpeech
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.camera.core.AspectRatio
@@ -42,7 +41,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
-import de.yanneckreiss.mlkittutorial.ui.translate.TranslateViewModel
 import de.yanneckreiss.mlkittutorial.ui.dialog.DialogViewModel
 import kotlinx.coroutines.delay
 
@@ -55,7 +53,6 @@ fun CameraScreen(text: String, onTextValueChange: (String) -> Unit) {
 private fun CameraContent(
     text: String,
     onTextValueChange: (String) -> Unit,
-    viewModel: TranslateViewModel = viewModel(),
     dialogViewModel: DialogViewModel = viewModel()
 ) {
     val context: Context = LocalContext.current
@@ -63,10 +60,6 @@ private fun CameraContent(
     val cameraController: LifecycleCameraController =
         remember { LifecycleCameraController(context) }
     var detectedText: String by remember { mutableStateOf("No text detected yet..") }
-    var showedText: String by remember { mutableStateOf("No text detected yet..") }
-    // Text to speech related variables
-    var textToSpeechInitialized by remember { mutableStateOf(false) }
-    var textToSpeech: TextToSpeech? by remember { mutableStateOf(null) }
 
     var zoomValue by remember { mutableStateOf(1f) }
 
@@ -76,15 +69,7 @@ private fun CameraContent(
         onTextValueChange(detectedText)
     }
 
-    fun initializeTextToSpeech() {
-        if (!textToSpeechInitialized) {
-            textToSpeech = TextToSpeech(context) { status ->
-                if (status == TextToSpeech.SUCCESS) {
-                    textToSpeechInitialized = true
-                }
-            }
-        }
-    }
+
 
     var showMessage by remember { mutableStateOf(false) }
 
@@ -139,7 +124,7 @@ private fun CameraContent(
 
     Box(
         modifier = Modifier.fillMaxSize(),
-        //topBar = { TopAppBar() },
+
     ) {
         Column(
             modifier = Modifier
