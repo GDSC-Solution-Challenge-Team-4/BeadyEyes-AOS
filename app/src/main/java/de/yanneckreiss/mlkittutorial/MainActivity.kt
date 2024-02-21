@@ -25,8 +25,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Text
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Surface
@@ -70,7 +70,7 @@ class MainActivity : ComponentActivity() {
 
 
         setContent {
-            val context: Context = LocalContext.current
+            val context = LocalContext.current
 
             var sttValue by remember { mutableStateOf("") }
             val dialogViewModel: DialogViewModel = viewModel()
@@ -120,14 +120,14 @@ class MainActivity : ComponentActivity() {
                     Column(
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        var selectedTabIndex by remember {
-                            mutableIntStateOf(1)
-                        }
 
                         val pagerState = rememberPagerState {
                             tabItems.size
                         }
-
+                        LaunchedEffect(pagerState.currentPage) {
+                            mainViewModel.initializeTextToSpeech(context)
+                            mainViewModel.startPlay(ttsIndex(pagerState.currentPage))
+                        }
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -232,48 +232,13 @@ class MainActivity : ComponentActivity() {
                                 .weight(1f)
                         ) { index ->
                             Box(
-                                modifier = Modifier
-                                    .fillMaxSize(),
+                                modifier = Modifier.fillMaxSize(),
                                 contentAlignment = Alignment.Center
                             ) {
-                                if (index == pagerState.currentPage) {
-                                    var string = ttsIndex(index)
-
-//                                    when(sttValue){
-//                                            "포인터" -> {
-//                                                selectedTabIndex = 2
-//                                            }
-//                                            "돈" -> {
-//                                                selectedTabIndex = 0
-//                                            }
-//                                            "텍스트"-> {
-//                                                selectedTabIndex = 1
-//                                            }
-//                                    }
-                                    LaunchedEffect(selectedTabIndex) {
-                                        if (selectedTabIndex != pagerState.currentPage) {
-                                            pagerState.scrollToPage(selectedTabIndex)
-                                        }
-                                    }
-                                    when (index) {
-                                        0 -> {
-                                            mainViewModel.initializeTextToSpeech(context)
-                                            mainViewModel.startPlay(string)
-                                            MoneyScreen()
-                                        }
-
-                                        1 -> {
-                                            mainViewModel.initializeTextToSpeech(context)
-                                            mainViewModel.startPlay(string)
-                                            MainScreen(mainViewModel)
-                                        }
-
-                                        2 -> {
-                                            mainViewModel.initializeTextToSpeech(context)
-                                            mainViewModel.startPlay(string)
-                                            PointerScreen()
-                                        }
-                                    }
+                                when (index) {
+                                    0 -> MoneyScreen()
+                                    1 -> MainScreen(mainViewModel)
+                                    2 -> PointerScreen()
                                 }
                             }
                         }
@@ -394,9 +359,9 @@ class MainActivity : ComponentActivity() {
 
                 }// 도움말 dialog
                 //toast message
-                mainViewModel.toastMessage.observe(this, Observer {
+                mainViewModel.toastMessage.observe(this) {
                     Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
-                })
+                }
             }
         }
     }
