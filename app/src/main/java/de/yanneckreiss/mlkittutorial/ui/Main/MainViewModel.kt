@@ -15,7 +15,7 @@ class MainViewModel : ViewModel() {
     val state: State<MainState> = _state
 
     //tts
-    private var textToSpeech: TextToSpeech? = null
+     var textToSpeech: TextToSpeech? = null
     private var playState = PlayState.STOP
     private  var standbyIndex = 0
     private  var lastPlayIndex = 0
@@ -87,10 +87,15 @@ class MainViewModel : ViewModel() {
                 this?.setOnUtteranceProgressListener(
                     object : UtteranceProgressListener() {
                     override fun onStart(s: String) {
-                        // Do something when speech starts...
+                        _state.value = _state.value.copy(
+                            isButtonEnabled = false
+                        )
                     }
 
                     override fun onDone(s: String) {
+                        _state.value = _state.value.copy(
+                            isButtonEnabled = true
+                        )
                         clearAll()
                     }
 

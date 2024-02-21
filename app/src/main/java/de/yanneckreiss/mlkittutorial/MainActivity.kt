@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,7 +22,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.material3.AlertDialog
@@ -36,6 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Gray
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
@@ -57,7 +61,6 @@ import de.yanneckreiss.mlkittutorial.ui.dialog.DialogViewModel
 import de.yanneckreiss.mlkittutorial.ui.money.ui.MoneyScreen
 import de.yanneckreiss.mlkittutorial.ui.pointer.PointerScreen
 import de.yanneckreiss.mlkittutorial.ui.theme.JetpackComposeMLKitTutorialTheme
-import de.yanneckreiss.mlkittutorial.ui.translate.TranslateViewModel
 
 class MainActivity : ComponentActivity() {
 
@@ -72,9 +75,12 @@ class MainActivity : ComponentActivity() {
             var sttValue by remember { mutableStateOf("") }
             val dialogViewModel: DialogViewModel = viewModel()
             val mainViewModel: MainViewModel = viewModel()
-            val translateViewModel: TranslateViewModel = viewModel()
+
 
             var showedText = "not found yet"
+
+            var textVisible by remember { mutableStateOf(false) }
+            var isFullView by remember { mutableStateOf(false) }
 
             //tts
 
@@ -153,18 +159,10 @@ class MainActivity : ComponentActivity() {
                                     fontSize = 24.sp
                                 )
                             }
-//                            }
-//                            if (sttValue.isNotBlank()) {
-//                                when(sttValue){
-//                                    "포인터" -> PointerScreen()
-//                                    "돈" -> MoneyScreen()
-//                                    "텍스트"-> MainScreen()
-//                                }
-//                            }
                             IconButton(
                                 onClick = {
                                     dialogViewModel.helpDialogOn()
-                                    translateViewModel.OnlytextToSpeech(context, "도움말 string")
+                                   mainViewModel.startPlay("도움말")
                                 },
                                 modifier = Modifier
                                     .padding(5.dp)
@@ -176,7 +174,57 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                         }
+                        if (textVisible) {
+                            Column {
+                                Surface(
+                                    shape = RoundedCornerShape(10.dp), // 끝이 둥근 모양을 만들기 위해 RoundedCornerShape 사용
+                                    color = Color.Gray, // 박스의 배경색을 회색으로 설정
+                                    modifier = Modifier.padding(16.dp).width(100.dp) // 박스 주변에 패딩 추가
+                                ) {
+                                    Text(
+                                        text = showedText, // 텍스트 설정
+                                        color = Color.White, // 텍스트 색상을 흰색으로 설정
+                                        modifier = if (isFullView) Modifier.verticalScroll(
+                                            rememberScrollState()
+                                        ) else Modifier.padding(16.dp), // '전체보기' 버튼 클릭 여부에 따라 Modifier 변경
+                                        maxLines = if (isFullView) Int.MAX_VALUE else 3, // '전체보기' 버튼 클릭 여부에 따라 maxLines 변경
+                                        overflow = if (isFullView) TextOverflow.Visible else TextOverflow.Ellipsis // '전체보기' 버튼 클릭 여부에 따라 overflow 변경
+                                    )
 
+                                }
+                                Row(
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    horizontalArrangement = Arrangement.End // 버튼을 오른쪽에 정렬
+                                ) {
+                                    // '멈추기' 버튼
+                                    Button(onClick = {
+                                        !textVisible
+                                        mainViewModel.stopPlay()
+                                    }) {
+                                        Text("나가기")
+                                    }
+                                    Spacer(Modifier.width(8.dp)) // 버튼 사이에 간격 추가
+                                    // '전체보기' 버튼
+                                    Button(onClick = { !isFullView }) {
+                                        Text("전체보기")
+                                    }
+                                }
+                            }
+                        }
+                        IconButton(
+                            onClick = { textVisible = !textVisible },
+                            modifier = Modifier.align(Alignment.End)
+                        ) {
+                            Icon(
+                                painter = if (textVisible) painterResource(id = R.drawable.icon_hidearrow) else painterResource(
+                                    id = R.drawable.icon_showarrow
+                                ),
+                                contentDescription = "화살표 아이콘",
+                                tint = Color.Black
+                            )
+                        }
                         HorizontalPager(
                             state = pagerState,
                             modifier = Modifier
@@ -236,13 +284,13 @@ class MainActivity : ComponentActivity() {
                         ) {
                             IconButton(
                                 onClick = {
-                                        showedText = mainViewModel.state.value.detectedtext
-                                        mainViewModel.startPlay(
-                                            showedText
-                                        )
-                                        dialogViewModel.shortDialogOn()
+                                    showedText = mainViewModel.state.value.detectedtext
+                                    mainViewModel.startPlay(
+                                        showedText
+                                    )
+                                    dialogViewModel.shortDialogOn()
 
-                                }, enabled = translateViewModel.state.value.isButtonEnabled,
+                                }, enabled = mainViewModel.state.value.isButtonEnabled,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(top = 15.dp, bottom = 15.dp)
@@ -255,65 +303,65 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 }
-                if (dialogViewModel.isShortDialogShown) {
-                    AlertDialog(onDismissRequest = {
-                        dialogViewModel.onDismissShortDialog()
-                        mainViewModel.stopPlay()
-                    }, confirmButton = {
-                        Button(onClick = {
-                            dialogViewModel.onDismissShortDialog()
-                            dialogViewModel.fullDialogOn()
-                        }) {
-                            Text(text = "확대")
-                        }
-                    }, dismissButton = {
-                        Button(onClick = {
-                            dialogViewModel.onDismissShortDialog()
-                            mainViewModel.stopPlay()
-                        }) {
-                            Text(text = "나가기")
-                        }
-                    }, title = {
-                        Text(text = "감지된 문자")
-                    }, text = {
-                        Text(
-                            text = showedText,
-                            maxLines = 3,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-
-                    )
-
-                } // 3줄짜리 작은 text dialog
-                if (dialogViewModel.isFullDialogShown) {
-                    AlertDialog(onDismissRequest = {
-                        dialogViewModel.onDismissFullDialog()
-                        mainViewModel.stopPlay()
-                    }, confirmButton = {
-                        Button(onClick = {
-                            mainViewModel.clearAll()
-                            mainViewModel.startPlay(showedText)
-                        }
-                        ) {
-                            Text(text = " 한번 더 읽기")
-                        }
-                    }, dismissButton = {
-                        Button(onClick = {
-                            dialogViewModel.onDismissFullDialog()
-                            mainViewModel.stopPlay()
-                        }) {
-                            Text(text = "나가기")
-                        }
-                    }, title = {
-                        Text(text = "감지된 문자")
-                    }, text = {
-                        Text(
-                            text = showedText,
-                            Modifier.verticalScroll(rememberScrollState())
-                        )
-                    })
-                }// 스크롤 되는 text dialog
+//                if (dialogViewModel.isShortDialogShown) {
+//                    AlertDialog(onDismissRequest = {
+//                        dialogViewModel.onDismissShortDialog()
+//                        mainViewModel.stopPlay()
+//                    }, confirmButton = {
+//                        Button(onClick = {
+//                            dialogViewModel.onDismissShortDialog()
+//                            dialogViewModel.fullDialogOn()
+//                        }) {
+//                            Text(text = "확대")
+//                        }
+//                    }, dismissButton = {
+//                        Button(onClick = {
+//                            dialogViewModel.onDismissShortDialog()
+//                            mainViewModel.stopPlay()
+//                        }) {
+//                            Text(text = "나가기")
+//                        }
+//                    }, title = {
+//                        Text(text = "감지된 문자")
+//                    }, text = {
+//                        Text(
+//                            text = showedText,
+//                            maxLines = 3,
+//                            overflow = TextOverflow.Ellipsis
+//                        )
+//                    }
+//
+//                    )
+//
+//                } // 3줄짜리 작은 text dialog
+//                if (dialogViewModel.isFullDialogShown) {
+//                    AlertDialog(onDismissRequest = {
+//                        dialogViewModel.onDismissFullDialog()
+//                        mainViewModel.stopPlay()
+//                    }, confirmButton = {
+//                        Button(onClick = {
+//                            mainViewModel.clearAll()
+//                            mainViewModel.startPlay(showedText)
+//                        }
+//                        ) {
+//                            Text(text = " 한번 더 읽기")
+//                        }
+//                    }, dismissButton = {
+//                        Button(onClick = {
+//                            dialogViewModel.onDismissFullDialog()
+//                            mainViewModel.stopPlay()
+//                        }) {
+//                            Text(text = "나가기")
+//                        }
+//                    }, title = {
+//                        Text(text = "감지된 문자")
+//                    }, text = {
+//                        Text(
+//                            text = showedText,
+//                            Modifier.verticalScroll(rememberScrollState())
+//                        )
+//                    })
+//                }// 스크롤 되는 text dialog
                 if (dialogViewModel.isHelpDialogShown) {
                     AlertDialog(onDismissRequest = {
                         dialogViewModel.onDismissHelpDialog()
@@ -370,3 +418,4 @@ fun ttsIndex(index: Int): String {
 
     return string
 }
+
