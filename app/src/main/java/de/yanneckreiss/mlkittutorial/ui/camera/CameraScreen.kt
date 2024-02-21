@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.compose.LifecycleStartEffect
 import de.yanneckreiss.mlkittutorial.ui.money.ui.MoneyScreen
 import de.yanneckreiss.mlkittutorial.ui.money.ui.ui.theme.JetpackComposeCameraXMLKitTutorialTheme
 import kotlinx.coroutines.delay
@@ -82,6 +83,14 @@ private fun CameraContent() {
         showMessage = true
         delay(2000)
         showMessage = false
+    }
+
+    LifecycleStartEffect(lifecycleOwner) {
+        cameraController.unbind()
+        cameraController.bindToLifecycle(lifecycleOwner)
+        onStopOrDispose {
+            cameraController.unbind()
+        }
     }
 
     val alpha by animateFloatAsState(
@@ -127,12 +136,8 @@ private fun CameraContent() {
 
     Scaffold(
         modifier = Modifier.fillMaxSize()
-    ) { paddingValues :PaddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(White),
-        ) {
+    ) { paddingValues: PaddingValues ->
+
             AndroidView(
                 modifier = Modifier
                     .fillMaxSize()
@@ -157,7 +162,7 @@ private fun CameraContent() {
                     }
                 }
             )
-        }
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -172,7 +177,6 @@ private fun CameraContent() {
             )
         }
     }
-
 }
 
 @Preview(showBackground = true)
@@ -183,7 +187,8 @@ fun MoneyPreview() {
     }
 }
 
-private fun startTextRecognition(
+
+fun startTextRecognition(
     context: Context,
     cameraController: LifecycleCameraController,
     lifecycleOwner: LifecycleOwner,
@@ -195,43 +200,5 @@ private fun startTextRecognition(
         ContextCompat.getMainExecutor(context),
         TextRecognitionAnalyzer(onDetectedTextUpdated = onDetectedTextUpdated)
     )
-    cameraController.bindToLifecycle(lifecycleOwner)
     previewView.controller = cameraController
-}
-
-@Composable
-fun CameraWithZoomSlider(
-    zoomValue: Float,
-    onZoomChanged: (Float) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .padding(bottom = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            shadowElevation = 4.dp
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Slider(
-                    value = zoomValue,
-                    onValueChange = { newValue ->
-                        onZoomChanged(newValue)
-                    },
-                    valueRange = 1f..5f,
-                    steps = 50,
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .weight(1f)
-                )
-            }
-        }
-    }
 }

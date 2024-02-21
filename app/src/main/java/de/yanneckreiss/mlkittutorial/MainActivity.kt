@@ -119,9 +119,9 @@ class MainActivity : ComponentActivity() {
                                     colorFilter = ColorFilter.tint(Gray)
                                 )
                             }
-                            if (sttValue.isNotBlank()) {
-                                Text(text = sttValue, fontSize = 24.sp)
-                            }
+//                            if (sttValue.isNotBlank()) {
+//                                Text(text = sttValue, fontSize = 24.sp)
+//                            }
                             IconButton(
                                 onClick = { },
                                 modifier = Modifier
@@ -148,17 +148,17 @@ class MainActivity : ComponentActivity() {
                             ) {
                                 if (index == pagerState.currentPage) {
                                     when (index) {
-                                        0 -> MoneyScreen()
-                                        1 -> MainScreen()
+                                        0 -> MainScreen()
+                                        1 -> MoneyScreen()
                                         2 -> PointerScreen()
                                     }
                                 }
                                 LaunchedEffect(sttValue){
-                                    //extToSpeech?.speak(ttsIndex(pagerState.currentPage),TextToSpeech.QUEUE_FLUSH,null,null)
+                                    //TextToSpeech?.speak(ttsIndex(pagerState.currentPage),TextToSpeech.QUEUE_FLUSH,null,null)
                                     when(sttValue){
-                                        "돈","money","currency" -> pagerState.scrollToPage(0)
-                                        "텍스트","text" -> pagerState.scrollToPage(1)
-                                        "포인터","pointer" -> pagerState.scrollToPage(2)
+                                        "[텍스트]","[text]" -> pagerState.scrollToPage(0)
+                                        "[돈]","[money]","[currency]" -> pagerState.scrollToPage(1)
+                                        "[포인터]","[pointer]" -> pagerState.scrollToPage(2)
                                     }
                                 }
                             }
@@ -193,8 +193,8 @@ data class TabItem(
 fun ttsIndex(index: Int): String {
     var string = ""
     when (index) {
-        0 -> string = "Currancy Screen"
-        1 -> string = "Text Screen"
+        0 -> string = "Text Screen"
+        1 -> string = "Currency Screen"
         2 -> string = "Pointer Screen"
     }
     return string

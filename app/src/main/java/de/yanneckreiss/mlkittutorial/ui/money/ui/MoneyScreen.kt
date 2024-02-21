@@ -63,8 +63,7 @@ fun MoneyScreen(modifier: Modifier = Modifier) {
             modifier = Modifier
                 .alpha(alpha)
                 .graphicsLayer(alpha = alpha)
-                .fillMaxSize()
-                .padding(top = 50.dp),
+                .fillMaxSize(),
             contentAlignment = Alignment.TopCenter // 세로 정렬을 맨 위로 설정
         ) {
             Box(
@@ -84,7 +83,7 @@ fun MoneyScreen(modifier: Modifier = Modifier) {
 
     Column(
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxSize()
             .background(Color.White),
     ) {
         CameraContentMoney(context = context)
