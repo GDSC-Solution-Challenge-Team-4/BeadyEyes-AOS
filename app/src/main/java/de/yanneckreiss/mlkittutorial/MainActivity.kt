@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -58,8 +59,6 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.skydoves.balloon.ArrowPositionRules
-import com.skydoves.balloon.BalloonAnimation
-import com.skydoves.balloon.BalloonSizeSpec
 import com.skydoves.balloon.compose.Balloon
 import com.skydoves.balloon.compose.BalloonWindow
 import com.skydoves.balloon.compose.rememberBalloonBuilder
@@ -71,6 +70,7 @@ import de.yanneckreiss.mlkittutorial.ui.dialog.DialogViewModel
 import de.yanneckreiss.mlkittutorial.ui.money.ui.MoneyScreen
 import de.yanneckreiss.mlkittutorial.ui.pointer.PointerScreen
 import de.yanneckreiss.mlkittutorial.ui.theme.JetpackComposeMLKitTutorialTheme
+import de.yanneckreiss.mlkittutorial.ui.translate.TranslateViewModel
 
 class MainActivity : ComponentActivity() {
 
@@ -85,9 +85,11 @@ class MainActivity : ComponentActivity() {
             var sttValue by remember { mutableStateOf("") }
             val dialogViewModel: DialogViewModel = viewModel()
             val mainViewModel: MainViewModel = viewModel()
+            val translateViewModel : TranslateViewModel = viewModel()
 
 
             var showedText = "not found yet"
+            var translatedText = " "
 
             var textVisible by remember { mutableStateOf(false) }
             var isFullView by remember { mutableStateOf(false) }
@@ -145,7 +147,7 @@ class MainActivity : ComponentActivity() {
                         val pagerState = rememberPagerState { tabItems.size }
                         LaunchedEffect(pagerState.currentPage) {
                             mainViewModel.initializeTextToSpeech(context)
-                            mainViewModel.startPlay(ttsIndex(pagerState.currentPage))
+                            mainViewModel.startSpeak(ttsIndex(pagerState.currentPage))
                         }
                         Row(
                             modifier = Modifier
@@ -180,7 +182,7 @@ class MainActivity : ComponentActivity() {
                             IconButton(
                                 onClick = {
                                     dialogViewModel.helpDialogOn()
-                                    mainViewModel.startPlay("도움말")
+                                    mainViewModel.startSpeak("도움말")
                                 },
                                 modifier = Modifier
                                     .padding(5.dp)
@@ -200,17 +202,21 @@ class MainActivity : ComponentActivity() {
                                     shape = RoundedCornerShape(10.dp),
                                     color = Gray,
                                     modifier = Modifier
-                                        .fillMaxWidth(),
+                                        .fillMaxWidth()
+                                        .height(200.dp),
                                     shadowElevation = 10.dp
                                 ) {
                                     Column {
                                         Text(
-                                            text = showedText, // 텍스트 설정
+                                            text = translatedText,
+                                           // showedText, // 텍스트 설정
                                             color = Color.White, // 텍스트 색상을 흰색으로 설정
                                             modifier = if (isFullView) {
-                                                Modifier.verticalScroll(
-                                                    rememberScrollState()
-                                                )
+                                                Modifier
+                                                    .verticalScroll(
+                                                        rememberScrollState()
+                                                    )
+                                                    .padding(16.dp)
                                             } else {
                                                 Modifier.padding(16.dp)
                                             }, // '전체보기' 버튼 클릭 여부에 따라 Modifier 변경
@@ -218,12 +224,7 @@ class MainActivity : ComponentActivity() {
                                                 Int.MAX_VALUE
                                             } else {
                                                 3
-                                            }, // '전체보기' 버튼 클릭 여부에 따라 maxLines 변경
-                                            overflow = if (isFullView) {
-                                                TextOverflow.Visible
-                                            } else {
-                                                TextOverflow.Ellipsis
-                                            } // '전체보기' 버튼 클릭 여부에 따라 overflow 변경
+                                            } // '전체보기' 버튼 클릭 여부에 따라 maxLines 변경
                                         )
                                         Row(
                                             Modifier
@@ -231,15 +232,8 @@ class MainActivity : ComponentActivity() {
                                                 .padding(16.dp),
                                             horizontalArrangement = Arrangement.End
                                         ) {
-                                            Button(onClick = {
-                                                textVisible = !textVisible
-                                                mainViewModel.stopPlay()
-                                            }) {
-                                                Text("나가기")
-                                            }
-                                            Spacer(Modifier.width(8.dp))
                                             Button(onClick = { isFullView = !isFullView }) {
-                                                Text("전체보기")
+                                                Text("나가기")
                                             }
                                         }
                                     }
@@ -256,7 +250,7 @@ class MainActivity : ComponentActivity() {
                                     },
                                     modifier = Modifier
                                         .padding(12.dp)
-                                        .size(24.dp)
+                                        .size(30.dp)
                                 ) {
                                     Icon(
                                         painter = if (balloonWindow?.balloon?.isShowing == true) {
@@ -295,10 +289,12 @@ class MainActivity : ComponentActivity() {
                             IconButton(
                                 onClick = {
                                     showedText = mainViewModel.state.value.detectedtext
-                                    mainViewModel.startPlay(
-                                        showedText
+                                    translateViewModel.onTranslateButtonClick(showedText,context)
+                                    translatedText = translateViewModel.state.value.translatedText
+                                    mainViewModel.startSpeak(
+                                        translatedText
+                                        //해석안된건 showed text
                                     )
-                                    dialogViewModel.shortDialogOn()
 
                                 }, enabled = mainViewModel.state.value.isButtonEnabled,
                                 modifier = Modifier
