@@ -8,13 +8,11 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -43,11 +41,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Gray
-import androidx.compose.ui.graphics.Color.Companion.Red
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -182,7 +180,7 @@ class MainActivity : ComponentActivity() {
                             IconButton(
                                 onClick = {
                                     dialogViewModel.helpDialogOn()
-                                    mainViewModel.startSpeak("도움말")
+                                    mainViewModel.startSpeak(text = mainViewModel.state.value.help_dialog)
                                 },
                                 modifier = Modifier
                                     .padding(5.dp)
@@ -313,14 +311,19 @@ class MainActivity : ComponentActivity() {
                     AlertDialog(
                         onDismissRequest = dialogViewModel::onDismissHelpDialog,
                         confirmButton = {
-                            Button(onClick = {}) {
+                            Button(onClick = {
+                                mainViewModel.stopPlay()
+                                mainViewModel.startSpeak(text = mainViewModel.state.value.help_dialog)
+                            }) {
                                 Text(text = "한번 더 듣기")
                             }
                         },
                         dismissButton = {
                             Button(
-                                onClick = dialogViewModel::onDismissHelpDialog
-                            ) {
+                                onClick = {
+                                    dialogViewModel.onDismissHelpDialog()
+                                    mainViewModel.stopPlay()
+                                }) {
                                 Text(text = "나가기")
                             }
                         },
@@ -333,7 +336,7 @@ class MainActivity : ComponentActivity() {
                         },
                         text = {
                             Text(
-                                text = "도움말입니다 잘 읽어 보아요",
+                                text =stringResource(id=R.string.help_dialog),
                                 modifier = Modifier.verticalScroll(rememberScrollState())
                             )
                         }
