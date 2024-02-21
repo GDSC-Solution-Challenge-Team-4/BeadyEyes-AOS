@@ -153,6 +153,14 @@ class MainActivity : ComponentActivity() {
                                         2 -> PointerScreen()
                                     }
                                 }
+                                LaunchedEffect(sttValue){
+                                    //extToSpeech?.speak(ttsIndex(pagerState.currentPage),TextToSpeech.QUEUE_FLUSH,null,null)
+                                    when(sttValue){
+                                        "돈","money","currency" -> pagerState.scrollToPage(0)
+                                        "텍스트","text" -> pagerState.scrollToPage(1)
+                                        "포인터","pointer" -> pagerState.scrollToPage(2)
+                                    }
+                                }
                             }
                         }
 
