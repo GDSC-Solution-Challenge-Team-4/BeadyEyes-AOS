@@ -1,12 +1,15 @@
 package de.yanneckreiss.mlkittutorial.ui.money.ui
 
+import android.content.Context
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -21,7 +24,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.yanneckreiss.mlkittutorial.ui.money.ui.ui.theme.JetpackComposeCameraXMLKitTutorialTheme
@@ -29,6 +34,7 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun MoneyScreen(modifier: Modifier = Modifier) {
+    val context: Context = LocalContext.current
     var showMessage by remember { mutableStateOf(false) }
 
     val alpha by animateFloatAsState(
@@ -64,12 +70,11 @@ fun MoneyScreen(modifier: Modifier = Modifier) {
             Box(
                 modifier = Modifier
                     .background(Color.Gray, shape = RoundedCornerShape(20.dp))
-                    .padding(top = 5.dp, start = 10.dp, end = 10.dp, bottom = 10.dp)
-                    ,
+                    .padding(top = 5.dp, start = 10.dp, end = 10.dp, bottom = 10.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Currancy recognition Screen",
+                    text = "Currency recognition Screen",
                     color = Color.White,
                     textAlign = TextAlign.Center
                 )
@@ -77,16 +82,35 @@ fun MoneyScreen(modifier: Modifier = Modifier) {
         }
     }
 
-    Text(
-        text = "Money",
-        modifier = modifier
-    )
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White),
+    ) {
+        CameraContentMoney(context = context)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(color = Color.Yellow, shape = RoundedCornerShape(8.dp))
+                .padding(10.dp),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            Text(
+                text = "dk",
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+
+    }
+
 }
 
 @Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
+fun MoneyPreview() {
     JetpackComposeCameraXMLKitTutorialTheme {
         MoneyScreen()
+
     }
 }

@@ -16,11 +16,13 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -47,6 +49,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
+import de.yanneckreiss.mlkittutorial.ui.money.ui.MoneyScreen
+import de.yanneckreiss.mlkittutorial.ui.money.ui.ui.theme.JetpackComposeCameraXMLKitTutorialTheme
 import kotlinx.coroutines.delay
 
 @Composable
@@ -121,7 +125,9 @@ private fun CameraContent() {
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Scaffold(
+        modifier = Modifier.fillMaxSize()
+    ) { paddingValues :PaddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -129,7 +135,8 @@ private fun CameraContent() {
         ) {
             AndroidView(
                 modifier = Modifier
-                    .fillMaxSize(),
+                    .fillMaxSize()
+                    .padding(paddingValues),
                 factory = { context ->
                     PreviewView(context).apply {
                         layoutParams = LinearLayout.LayoutParams(
@@ -168,10 +175,12 @@ private fun CameraContent() {
 
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
-private fun Preview_CameraScreen() {
-    CameraContent()
+fun MoneyPreview() {
+    JetpackComposeCameraXMLKitTutorialTheme {
+        CameraScreen()
+    }
 }
 
 private fun startTextRecognition(
