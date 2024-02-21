@@ -87,20 +87,6 @@ fun MoneyScreen(modifier: Modifier = Modifier) {
             .background(Color.White),
     ) {
         CameraContentMoney(context = context)
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(color = Color.Yellow, shape = RoundedCornerShape(8.dp))
-                .padding(10.dp),
-            contentAlignment = Alignment.BottomCenter
-        ) {
-            Text(
-                text = "dk",
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
-
     }
 
 }
