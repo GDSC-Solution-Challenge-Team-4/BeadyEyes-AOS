@@ -1,6 +1,7 @@
 package de.yanneckreiss.mlkittutorial.ui.pointer
 
 
+import android.net.Uri
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.keyframes
@@ -8,12 +9,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -31,6 +28,20 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.yanneckreiss.mlkittutorial.ui.pointer.ui.theme.JetpackComposeCameraXMLKitTutorialTheme
 import kotlinx.coroutines.delay
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.Button
+import androidx.compose.ui.platform.LocalContext
+import coil.compose.rememberAsyncImagePainter
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import java.io.FileInputStream
+import de.yanneckreiss.mlkittutorial.ui.pointer.network.MyApi as MyApi
 
 @Composable
 fun PointerScreen(modifier: Modifier = Modifier) {
@@ -86,6 +97,80 @@ fun PointerScreen(modifier: Modifier = Modifier) {
         modifier = modifier
     )
 }
+
+@Composable
+fun ImageUploadScreen(
+    modifier: Modifier = Modifier
+) {
+    val Api = MyApi
+    val myApi = Api.getInstance()
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    val context = LocalContext.current
+    val getContent =
+        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { result: Uri? ->
+            result?.let { uri ->
+                selectedImageUri = uri
+            }
+        }
+
+    Column(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Button(
+            onClick = { getContent.launch("image/*") },
+            content = { Text("Select Image") }
+        )
+
+        selectedImageUri?.let { uri ->
+            // Display the selected image
+            Image(
+                painter = rememberAsyncImagePainter(uri),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize()
+            )
+
+            Button(
+                onClick = {
+                    selectedImageUri?.let { uri ->
+                         // LocalContext를 사용하여 현재 Context를 가져옴
+                        val parcelFileDescriptor =
+                            context.contentResolver.openFileDescriptor(uri, "r", null)
+                        parcelFileDescriptor?.let { pfd ->
+                            val inputStream =
+                                FileInputStream(pfd.fileDescriptor) // InputStream을 가져옴
+                            val bytes = inputStream.readBytes() // InputStream을 ByteArray로 변환
+                            val requestFile = RequestBody.create(
+                                "image/*".toMediaTypeOrNull(),
+                                bytes
+                            ) // ByteArray를 RequestBody로 변환
+                            val imagePart = MultipartBody.Part.createFormData(
+                                "image",
+                                uri.lastPathSegment ?: "",
+                                requestFile
+                            ) // 파일 이름 대신 uri의 마지막 세그먼트를 사용
+
+                            GlobalScope.launch {
+                                val response = myApi.uploadImage(imagePart)
+                                if (response.isSuccessful && response.body()?.statusCode == "OK") {
+                                    // Image upload successful, handle the response
+                                    val imageUrl = response.body()?.resultData
+                                    // Do something with imageUrl
+                                } else {
+                                    // Image upload failed, handle the error
+                                    val errorMessage = response.body()?.resultMsg
+                                    // Handle the error
+                                }
+                            }
+                        }
+                    }
+                },
+                content = { Text("Upload Image") }
+            )
+
+        }
+    }
+}
+
 
 @Preview(showBackground = true)
 @Composable
