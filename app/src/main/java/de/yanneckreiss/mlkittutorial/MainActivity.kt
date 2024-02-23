@@ -7,6 +7,7 @@ import android.speech.tts.TextToSpeech
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.camera.core.ImageCapture
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -21,7 +22,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
@@ -36,7 +36,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -44,6 +44,7 @@ import de.yanneckreiss.cameraxtutorial.R
 import de.yanneckreiss.mlkittutorial.ui.MainScreen
 import de.yanneckreiss.mlkittutorial.ui.RecordAndConvertToText
 import de.yanneckreiss.mlkittutorial.ui.money.ui.MoneyScreen
+import de.yanneckreiss.mlkittutorial.ui.money.ui.captureImage
 import de.yanneckreiss.mlkittutorial.ui.pointer.PointerScreen
 import de.yanneckreiss.mlkittutorial.ui.theme.JetpackComposeMLKitTutorialTheme
 
@@ -60,6 +61,8 @@ class MainActivity : ComponentActivity() {
                 contract = RecordAndConvertToText(),
                 onResult = { sttValue = it.toString() }
             )
+
+
             JetpackComposeMLKitTutorialTheme {
                 val tabItems = listOf(
                     TabItem(
@@ -115,8 +118,8 @@ class MainActivity : ComponentActivity() {
                             ) {
                                 Image(
                                     painter = painterResource(id = R.drawable.icon_record), // 이미지 리소스 지정
-                                    contentDescription = "Record", // 이미지 버튼에 대한 설명
-                                    colorFilter = ColorFilter.tint(Gray)
+                                    contentDescription = "Page Move Button With Voice Recording", // 이미지 버튼에 대한 설명
+                                    colorFilter = ColorFilter.tint(Gray),
                                 )
                             }
 //                            if (sttValue.isNotBlank()) {
@@ -157,7 +160,7 @@ class MainActivity : ComponentActivity() {
                                     //TextToSpeech?.speak(ttsIndex(pagerState.currentPage),TextToSpeech.QUEUE_FLUSH,null,null)
                                     when(sttValue){
                                         "[텍스트]","[text]" -> pagerState.scrollToPage(0)
-                                        "[돈]","[money]","[currency]" -> pagerState.scrollToPage(1)
+                                        "[돈]","[지폐]","","[money]","[currency]" -> pagerState.scrollToPage(1)
                                         "[포인터]","[pointer]" -> pagerState.scrollToPage(2)
                                     }
                                 }
@@ -167,6 +170,20 @@ class MainActivity : ComponentActivity() {
                         Column(modifier = Modifier.fillMaxWidth()) {
                             IconButton(
                                 onClick = {
+                                          when(pagerState.currentPage){
+                                              0->
+                                              {
+
+                                              }
+                                              1->
+                                              {
+
+                                              }
+                                              2->
+                                              {
+
+                                              }
+                                          }
                                 },
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -174,7 +191,7 @@ class MainActivity : ComponentActivity() {
                             ) {
                                 Image(
                                     painter = painterResource(id = R.drawable.icon_camera2),
-                                    contentDescription = "TTS",
+                                    contentDescription = "TTS Button"
                                 )
                             }
                         }

@@ -2,8 +2,6 @@ package de.yanneckreiss.mlkittutorial.util
 
 import android.content.Context
 import android.graphics.Bitmap
-import androidx.compose.ui.platform.LocalContext
-import com.google.protobuf.LazyStringArrayList
 import de.yanneckreiss.cameraxtutorial.ml.Model
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
@@ -16,15 +14,15 @@ fun loadImageBufferFromBitmap(bitmap: Bitmap): ByteBuffer {
     val byteBuffer = ByteBuffer.allocate(4 * IMAGE_SIZE * IMAGE_SIZE * 3)
     byteBuffer.order(ByteOrder.nativeOrder())
 
-    val pixels = intArrayOf()
+    val pixels = IntArray(IMAGE_SIZE * IMAGE_SIZE)
     bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
 
     var pixelIndex = 0
-    repeat(IMAGE_SIZE) {
-        repeat(IMAGE_SIZE) {
+    for (i in 0 until IMAGE_SIZE) {
+        for (j in 0 until IMAGE_SIZE) {
             val pixel = pixels[pixelIndex++]
-            byteBuffer.putFloat((pixel shr 16 and 0xFF) * (1f / 255f))
-            byteBuffer.putFloat((pixel shr 8 and 0xFF) * (1f / 255f))
+            byteBuffer.putFloat(((pixel shr 16) and 0xFF) * (1f / 255f))
+            byteBuffer.putFloat(((pixel shr 8) and 0xFF) * (1f / 255f))
             byteBuffer.putFloat((pixel and 0xFF) * (1f / 255f))
         }
     }
@@ -46,7 +44,8 @@ fun classifyImage(context: Context, bitmap: Bitmap): String {
     val confidences = outputFeature0.floatArray
     val maxIndex = confidences.indexOfFirst { it == confidences.max() }
 
-    val classes = arrayOf("500원",
+    val classes = arrayOf(
+            "500원",
             "100원",
             "10원",
             "1000원",
