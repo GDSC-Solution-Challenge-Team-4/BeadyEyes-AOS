@@ -3,6 +3,7 @@ package de.yanneckreiss.mlkittutorial.ui.money.ui
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.media.ThumbnailUtils
 import android.util.Log
 import android.view.ViewGroup
 import android.widget.LinearLayout
@@ -43,19 +44,23 @@ import androidx.lifecycle.compose.LifecycleStartEffect
 import com.google.common.util.concurrent.ListenableFuture
 import de.yanneckreiss.mlkittutorial.util.classifyImage
 import de.yanneckreiss.mlkittutorial.util.loadImageBufferFromBitmap
+import java.lang.Math.min
 import java.util.concurrent.Executor
 
 
 @Composable
-fun CameraContentMoney(context: Context, modifier: Modifier = Modifier) {
+fun CameraContentMoney(context: Context,
+                       modifier: Modifier = Modifier) {
     val cameraProviderFuture: ListenableFuture<ProcessCameraProvider> =
         remember { ProcessCameraProvider.getInstance(context) }
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    val imageCaptureExecutor = ContextCompat.getMainExecutor(context)
-    val imageCapture = ImageCapture.Builder()
-        .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-        .build()
+    val imageCaptureExecutor = remember{ ContextCompat.getMainExecutor(context) }
+    val imageCapture = remember {
+        ImageCapture.Builder()
+            .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+            .build()
+    }
     val detectedText = remember { mutableStateOf("No text detected yet..") }
 
     Box {
@@ -185,10 +190,10 @@ fun captureImage(
                 //Log.d("MainActivity22", "Image saved: ${file.absolutePath}")
                 // Add your code here
                 var bitmapImage = BitmapFactory.decodeFile(file.absolutePath)
-                var bitmap2 = Bitmap.createScaledBitmap(bitmapImage, 224, 224, false)
+                var bitmap = ThumbnailUtils.extractThumbnail(bitmapImage, min(bitmapImage.width, bitmapImage.height), min(bitmapImage.width, bitmapImage.height));
+                bitmap = Bitmap.createScaledBitmap(bitmap, 224, 224, false)
                 Log.d("MainActivity27", "Image saved: ${file.absolutePath}")
-                //detectedText.value = classifyImage(context, bitmap2)
-                Log.d("MainActivity27", "Image saved: ${file.absolutePath}")
+                detectedText.value = classifyImage(context, bitmap)
             }
 
             override fun onError(exception: androidx.camera.core.ImageCaptureException) {
