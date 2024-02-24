@@ -1,9 +1,11 @@
 package de.yanneckreiss.mlkittutorial
 
 import android.Manifest
+import android.app.Activity
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -68,7 +70,6 @@ import de.yanneckreiss.mlkittutorial.ui.dialog.DialogViewModel
 import de.yanneckreiss.mlkittutorial.ui.money.ui.MoneyScreen
 import de.yanneckreiss.mlkittutorial.ui.pointer.PointerScreen
 import de.yanneckreiss.mlkittutorial.ui.theme.JetpackComposeMLKitTutorialTheme
-import de.yanneckreiss.mlkittutorial.ui.translate.TranslateViewModel
 
 class MainActivity : ComponentActivity() {
 
@@ -83,16 +84,18 @@ class MainActivity : ComponentActivity() {
             var sttValue by remember { mutableStateOf("") }
             val dialogViewModel: DialogViewModel = viewModel()
             val mainViewModel: MainViewModel = viewModel()
-            val translateViewModel : TranslateViewModel = viewModel()
-
 
             var showedText = "not found yet"
-            var translatedText = " "
+
+            var backPressedState by remember { mutableStateOf(true) }
+            var backPressedTime = 0L
+
 
             var textVisible by remember { mutableStateOf(false) }
             var isFullView by remember { mutableStateOf(false) }
             val lifecycleOwner = LocalLifecycleOwner.current
             var balloonWindow: BalloonWindow? by remember { mutableStateOf(null) }
+            val scrollState = rememberScrollState()
 
             //tts
 
@@ -110,6 +113,7 @@ class MainActivity : ComponentActivity() {
                 }
             )
             val balloonBuilder = rememberBalloonBuilder {
+                setHeight(250)
                 setArrowSize(0)
                 setArrowPositionRules(ArrowPositionRules.ALIGN_ANCHOR)
                 setMarginHorizontal(12)
@@ -123,6 +127,17 @@ class MainActivity : ComponentActivity() {
             }
 
             JetpackComposeMLKitTutorialTheme {
+                BackHandler(enabled = backPressedState) {
+                    if(System.currentTimeMillis() - backPressedTime <= 400L) {
+                        // 앱 종료
+                        (context as Activity).finish()
+                    } else {
+                        mainViewModel.stopPlay()
+                        backPressedState = true
+                        Toast.makeText(context, "한 번 더 누르시면 앱이 종료됩니다.", Toast.LENGTH_SHORT).show()
+                    }
+                    backPressedTime = System.currentTimeMillis()
+                }
                 Surface(modifier = Modifier.fillMaxSize()) {
                     val tabItems = listOf(
                         TabItem(
@@ -201,43 +216,48 @@ class MainActivity : ComponentActivity() {
                                     color = Gray,
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .height(200.dp),
+                                        .height(250.dp),
                                     shadowElevation = 10.dp
                                 ) {
-                                    Column {
+                                    Column(
+                                        Modifier
+                                            .fillMaxSize()
+                                            .padding(12.dp)
+                                            .verticalScroll(scrollState)
+                                    ) {
                                         Text(
-                                            text = translatedText,
-                                           // showedText, // 텍스트 설정
+                                            text = showedText,
+                                            // showedText, // 텍스트 설정
                                             color = Color.White, // 텍스트 색상을 흰색으로 설정
-                                            modifier = if (isFullView) {
-                                                Modifier
-                                                    .verticalScroll(
-                                                        rememberScrollState()
-                                                    )
-                                                    .padding(16.dp)
-                                            } else {
-                                                Modifier.padding(16.dp)
-                                            }, // '전체보기' 버튼 클릭 여부에 따라 Modifier 변경
+                                            // '전체보기' 버튼 클릭 여부에 따라 Modifier 변경
                                             maxLines = if (isFullView) {
                                                 Int.MAX_VALUE
                                             } else {
-                                                3
+                                                7
                                             } // '전체보기' 버튼 클릭 여부에 따라 maxLines 변경
                                         )
                                         Row(
                                             Modifier
                                                 .fillMaxWidth()
-                                                .padding(16.dp),
+                                                .padding(8.dp),
                                             horizontalArrangement = Arrangement.End
                                         ) {
+                                            Button(onClick = {
+                                                mainViewModel.stopPlay()
+                                                mainViewModel.state.value.isButtonEnabled = true
+                                                balloonWindow?.dismiss()
+                                            }) {
+                                                Text("멈추기")
+                                            }
+                                            Spacer(Modifier.width(8.dp))
                                             Button(onClick = { isFullView = !isFullView }) {
-                                                Text("나가기")
+                                                Text("전체보기")
                                             }
                                         }
                                     }
                                 }
                             }
-                        ) { window ->
+                        ) { window: BalloonWindow ->
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.End
@@ -287,13 +307,11 @@ class MainActivity : ComponentActivity() {
                             IconButton(
                                 onClick = {
                                     showedText = mainViewModel.state.value.detectedtext
-                                    translateViewModel.onTranslateButtonClick(showedText,context)
-                                    translatedText = translateViewModel.state.value.translatedText
                                     mainViewModel.startSpeak(
-                                        translatedText
+                                        showedText
                                         //해석안된건 showed text
                                     )
-
+                                    balloonWindow?.showAlignBottom(110, 30)
                                 }, enabled = mainViewModel.state.value.isButtonEnabled,
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -336,7 +354,7 @@ class MainActivity : ComponentActivity() {
                         },
                         text = {
                             Text(
-                                text =stringResource(id=R.string.help_dialog),
+                                text = stringResource(id = R.string.help_dialog),
                                 modifier = Modifier.verticalScroll(rememberScrollState())
                             )
                         }
@@ -355,7 +373,6 @@ private fun MainScreenPreview() {
         var textVisible by remember {
             mutableStateOf(false)
         }
-        val context = LocalContext.current
 
         var sttValue by remember { mutableStateOf("") }
         var showedText = "not found yet"
@@ -510,6 +527,8 @@ private fun MainScreenPreview() {
         }
     }
 }
+
+
 
 data class TabItem(
     var title: String,
