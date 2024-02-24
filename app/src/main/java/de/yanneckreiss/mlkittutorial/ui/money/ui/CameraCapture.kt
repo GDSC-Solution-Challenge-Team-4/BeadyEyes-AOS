@@ -47,6 +47,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import de.yanneckreiss.mlkittutorial.ui.pointer.pointer
 import de.yanneckreiss.mlkittutorial.util.classifyImage
 import de.yanneckreiss.mlkittutorial.util.loadImageBufferFromBitmap
+import org.checkerframework.common.subtyping.qual.Bottom
 import java.io.File
 import java.lang.Math.min
 import java.util.Locale
@@ -61,8 +62,6 @@ fun CameraContentMoney(
     modifier: Modifier = Modifier
 ) {
 
-    //var loading by remember { mutableStateOf(true) }
-
     val cameraProviderFuture: ListenableFuture<ProcessCameraProvider> =
         remember { ProcessCameraProvider.getInstance(context) }
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -74,9 +73,7 @@ fun CameraContentMoney(
             .build()
     }
     val detectedText = remember { mutableStateOf("No text detected yet..") }
-    var result: String
-
-    var isCapturing by remember { mutableStateOf(false) }
+    var result: String by remember { mutableStateOf("") }
 
     Box {
         CameraPreview(imageCaptureExecutor, cameraProviderFuture, imageCapture, lifecycleOwner)
@@ -86,25 +83,22 @@ fun CameraContentMoney(
         ) {
             CaptureButton(
                 onClick = {
-                    if (!isCapturing) {
-                        isCapturing = true
-                        captureImage(
-                            context,
-                            imageCapture = imageCapture,
-                            imageCaptureExecutor,
-                            detectedText,
-                            onResult = {
-                                result = it
-                                onResult(result)
-                            },
-                            onComplete = {
-                                isCapturing = false
-                            },
-                            index
-                        )
-                    }
+                    captureImage(
+                        context,
+                        imageCapture = imageCapture,
+                        imageCaptureExecutor,
+                        detectedText,
+                        onResult = {
+                            result = it
+                            onResult(result)
+                        },
+                        index
+                    )
                 },
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier
+                    .padding(16.dp)
+                    .align(Alignment.BottomCenter)
+                    .padding(16.dp)
             )
         }
         Box(
@@ -204,9 +198,9 @@ fun CaptureButton(
     Button(
         onClick = onClick,
         modifier = modifier
-            .fillMaxWidth()
+            .fillMaxWidth(),
     ) {
-        Text("Capture")
+        Text("Temp Capture Button")
     }
 }
 
@@ -216,7 +210,6 @@ fun captureImage(
     imageCaptureExecutor: Executor,
     detectedText: MutableState<String>,
     onResult: (String) -> Unit,
-    onComplete: () -> Unit,
     index: Int
 ) {
     val file = createTempFile(context)
@@ -240,11 +233,11 @@ fun captureImage(
                     bitmap = Bitmap.createScaledBitmap(bitmap, 224, 224, false)
                     Log.d("MainActivity27", "Image saved: ${file.absolutePath}")
                     detectedText.value = classifyImage(context, bitmap)
+                    Log.d("MainActivity27", "text: ${detectedText.value}")
                 } else {
                     detectedText.value = file.absolutePath
                     onResult(detectedText.value)
                 }
-                onComplete()
             }
 
             override fun onError(exception: androidx.camera.core.ImageCaptureException) {
@@ -253,10 +246,10 @@ fun captureImage(
                     "Error capturing image: ${exception.message}",
                     exception
                 )
-                onComplete()
             }
         }
     )
+
 }
 
 fun createTempFile(context: Context): File {
