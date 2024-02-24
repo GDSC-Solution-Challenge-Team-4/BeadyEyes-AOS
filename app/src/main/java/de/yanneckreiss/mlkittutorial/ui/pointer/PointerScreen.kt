@@ -1,7 +1,8 @@
 package de.yanneckreiss.mlkittutorial.ui.pointer
 
 
-import android.net.Uri
+import android.content.Context
+import android.util.Log
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.keyframes
@@ -28,25 +29,23 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.yanneckreiss.mlkittutorial.ui.pointer.ui.theme.JetpackComposeCameraXMLKitTutorialTheme
 import kotlinx.coroutines.delay
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Column
-import androidx.compose.material3.Button
 import androidx.compose.ui.platform.LocalContext
-import coil.compose.rememberAsyncImagePainter
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import de.yanneckreiss.mlkittutorial.ui.money.ui.CameraContentMoney
+import de.yanneckreiss.mlkittutorial.ui.pointer.network.PointerBackendResponse
+import de.yanneckreiss.mlkittutorial.ui.pointer.network.PointerService
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
-import okhttp3.RequestBody
-import java.io.FileInputStream
-import de.yanneckreiss.mlkittutorial.ui.pointer.network.MyApi as MyApi
+import okhttp3.RequestBody.Companion.asRequestBody
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import java.io.File
 
 @Composable
-fun PointerScreen(modifier: Modifier = Modifier) {
-
+fun PointerScreen(index: Int, modifier: Modifier = Modifier) {
+    val context: Context = LocalContext.current
     var showMessage by remember { mutableStateOf(false) }
+    var filePathResult by remember { mutableStateOf("") }
 
     val alpha by animateFloatAsState(
         targetValue = if (showMessage) 1f else 0f,
@@ -92,83 +91,16 @@ fun PointerScreen(modifier: Modifier = Modifier) {
         }
     }
 
-    Text(
-        text = "Pointer",
-        modifier = modifier
+    CameraContentMoney(
+        context = context,
+        index = index,
+        onResult = {
+            filePathResult = it
+            Log.d("newResult", "Response code: $filePathResult")
+            pointer(filePathResult)
+        }
     )
-}
 
-@Composable
-fun ImageUploadScreen(
-    modifier: Modifier = Modifier
-) {
-    val Api = MyApi
-    val myApi = Api.getInstance()
-    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
-    val context = LocalContext.current
-    val getContent =
-        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { result: Uri? ->
-            result?.let { uri ->
-                selectedImageUri = uri
-            }
-        }
-
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Button(
-            onClick = { getContent.launch("image/*") },
-            content = { Text("Select Image") }
-        )
-
-        selectedImageUri?.let { uri ->
-            // Display the selected image
-            Image(
-                painter = rememberAsyncImagePainter(uri),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize()
-            )
-
-            Button(
-                onClick = {
-                    selectedImageUri?.let { uri ->
-                         // LocalContext를 사용하여 현재 Context를 가져옴
-                        val parcelFileDescriptor =
-                            context.contentResolver.openFileDescriptor(uri, "r", null)
-                        parcelFileDescriptor?.let { pfd ->
-                            val inputStream =
-                                FileInputStream(pfd.fileDescriptor) // InputStream을 가져옴
-                            val bytes = inputStream.readBytes() // InputStream을 ByteArray로 변환
-                            val requestFile = RequestBody.create(
-                                "image/*".toMediaTypeOrNull(),
-                                bytes
-                            ) // ByteArray를 RequestBody로 변환
-                            val imagePart = MultipartBody.Part.createFormData(
-                                "image",
-                                uri.lastPathSegment ?: "",
-                                requestFile
-                            ) // 파일 이름 대신 uri의 마지막 세그먼트를 사용
-
-                            GlobalScope.launch {
-                                val response = myApi.uploadImage(imagePart)
-                                if (response.isSuccessful && response.body()?.statusCode == "OK") {
-                                    // Image upload successful, handle the response
-                                    val imageUrl = response.body()?.resultData
-                                    // Do something with imageUrl
-                                } else {
-                                    // Image upload failed, handle the error
-                                    val errorMessage = response.body()?.resultMsg
-                                    // Handle the error
-                                }
-                            }
-                        }
-                    }
-                },
-                content = { Text("Upload Image") }
-            )
-
-        }
-    }
 }
 
 
@@ -176,6 +108,35 @@ fun ImageUploadScreen(
 @Composable
 fun PointerPreview() {
     JetpackComposeCameraXMLKitTutorialTheme {
-        PointerScreen()
+        //PointerScreen()
     }
+}
+
+
+fun pointer(file: String) {
+
+    val api = PointerService.getInstance()
+    val file1 = File(file)
+    val requestFile = file1.asRequestBody("multipart/form-data".toMediaTypeOrNull())
+    val body = MultipartBody.Part.createFormData("image", file1.name, requestFile)
+    //Log.d("포인터 파일 타입", file1::class.java.toString())
+    Log.d("포인터 바디", body.toString())
+    Log.d("포인터 리퀘스트 파일", requestFile.toString())
+
+    api.postPointerImage(body).enqueue(object : Callback<PointerBackendResponse> {
+        override fun onResponse(
+            call: Call<PointerBackendResponse>,
+            response: Response<PointerBackendResponse>
+        ) {
+            Log.d("포인터 성공", "Response code: ${response.code()}")
+            Log.d("포인터 통신", response.toString())
+
+        }
+
+        override fun onFailure(call: Call<PointerBackendResponse>, t: Throwable) {
+            Log.e("포인터 네트워크 오류", "Unknown error: ${t.message}", t)
+        }
+
+    })
+
 }
