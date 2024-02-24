@@ -101,19 +101,19 @@ fun CameraContentMoney(
                     .padding(16.dp)
             )
         }
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(color = Color.Yellow, shape = RoundedCornerShape(8.dp))
-                .padding(10.dp),
-            contentAlignment = Alignment.BottomCenter
-        ) {
-            Text(
-                text = detectedText.value,
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
+//        Box(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .background(color = Color.Yellow, shape = RoundedCornerShape(8.dp))
+//                .padding(10.dp),
+//            contentAlignment = Alignment.BottomCenter
+//        ) {
+//            Text(
+//                text = detectedText.value,
+//                maxLines = 3,
+//                overflow = TextOverflow.Ellipsis
+//            )
+//        }
     }
 }
 
@@ -231,12 +231,9 @@ fun captureImage(
                         min(bitmapImage.width, bitmapImage.height)
                     );
                     bitmap = Bitmap.createScaledBitmap(bitmap, 224, 224, false)
-                    Log.d("MainActivity27", "Image saved: ${file.absolutePath}")
-                    detectedText.value = classifyImage(context, bitmap)
-                    Log.d("MainActivity27", "text: ${detectedText.value}")
+                    onResult(classifyImage(context, bitmap))
                 } else {
-                    detectedText.value = file.absolutePath
-                    onResult(detectedText.value)
+                    onResult(file.absolutePath)
                 }
             }
 
@@ -255,7 +252,7 @@ fun captureImage(
 fun createTempFile(context: Context): File {
     val timeStamp = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
         .format(java.util.Date())
-    val imageFileName = "JPEG_$timeStamp.jpg"
+    val imageFileName = "JPEG_$timeStamp"
     val storageDir = context.getExternalFilesDir(android.os.Environment.DIRECTORY_PICTURES)
-    return File.createTempFile(imageFileName, ".jpg", storageDir)
+    return File.createTempFile(imageFileName, ".jpeg", storageDir)
 }
