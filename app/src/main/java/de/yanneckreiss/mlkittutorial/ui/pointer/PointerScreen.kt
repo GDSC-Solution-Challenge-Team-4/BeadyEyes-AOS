@@ -119,7 +119,7 @@ fun pointer(file: String) {
     val file1 = File(file)
     val requestFile = file1.asRequestBody("multipart/form-data".toMediaTypeOrNull())
     val body = MultipartBody.Part.createFormData("image", file1.name, requestFile)
-    //Log.d("포인터 파일 타입", file1::class.java.toString())
+    Log.d("포인터 파일 타입", file1::class.java.toString())
     Log.d("포인터 바디", body.toString())
     Log.d("포인터 리퀘스트 파일", requestFile.toString())
 
@@ -129,7 +129,7 @@ fun pointer(file: String) {
             response: Response<PointerBackendResponse>
         ) {
             Log.d("포인터 성공", "Response code: ${response.code()}")
-            Log.d("포인터 통신", response.toString())
+            Log.d("포인터 통신", response.body().toString())
 
         }
 

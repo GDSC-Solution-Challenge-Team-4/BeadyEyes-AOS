@@ -18,11 +18,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
@@ -35,7 +37,9 @@ import androidx.compose.ui.graphics.Color.Companion.Gray
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -57,6 +61,7 @@ class MainActivity : ComponentActivity() {
             val context: Context = LocalContext.current
             var textToSpeech: TextToSpeech? by remember { mutableStateOf(null) }
             var sttValue by remember { mutableStateOf("") }
+            var pageName by remember { mutableStateOf("") }
             val speechRecognizerLauncher = rememberLauncherForActivityResult(
                 contract = RecordAndConvertToText(),
                 onResult = { sttValue = it.toString() }
@@ -88,6 +93,7 @@ class MainActivity : ComponentActivity() {
                     permissionState.launchPermissionRequest()
                 }
                 LaunchedEffect(pagerState.currentPage) {
+                    pageName = ttsIndex(pagerState.currentPage)
                     textToSpeech?.speak(
                         ttsIndex(pagerState.currentPage),
                         TextToSpeech.QUEUE_FLUSH,
@@ -122,9 +128,10 @@ class MainActivity : ComponentActivity() {
                                     colorFilter = ColorFilter.tint(Gray),
                                 )
                             }
-//                            if (sttValue.isNotBlank()) {
-//                                Text(text = sttValue, fontSize = 24.sp)
-//                            }
+                            Text(
+                                text = pageName, fontSize = 16.sp, fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(20.dp)
+                            )
                             IconButton(
                                 onClick = { },
                                 modifier = Modifier
@@ -152,50 +159,53 @@ class MainActivity : ComponentActivity() {
                                 if (index == pagerState.currentPage) {
                                     when (index) {
                                         0 -> MainScreen()
-                                        1 -> MoneyScreen(index=index)
-                                        2 -> PointerScreen(index=index)
+                                        1 -> MoneyScreen(index = index)
+                                        2 -> PointerScreen(index = index)
                                     }
                                 }
-                                LaunchedEffect(sttValue){
+                                LaunchedEffect(sttValue) {
                                     //TextToSpeech?.speak(ttsIndex(pagerState.currentPage),TextToSpeech.QUEUE_FLUSH,null,null)
-                                    when(sttValue){
-                                        "[텍스트]","[text]" -> pagerState.scrollToPage(0)
-                                        "[돈]","[지폐]","","[money]","[currency]" -> pagerState.scrollToPage(1)
-                                        "[포인터]","[pointer]" -> pagerState.scrollToPage(2)
+                                    when (sttValue) {
+                                        "[텍스트]", "[text]" -> pagerState.scrollToPage(0)
+                                        "[돈]", "[지폐]", "", "[money]", "[currency]" -> pagerState.scrollToPage(
+                                            1
+                                        )
+
+                                        "[포인터]", "[pointer]" -> pagerState.scrollToPage(2)
                                     }
                                 }
                             }
                         }
 
-                        Column(modifier = Modifier.fillMaxWidth()) {
-                            IconButton(
-                                onClick = {
-                                          when(pagerState.currentPage){
-                                              0->
-                                              {
+                        IconButton(
+                            onClick = {
+                                when (pagerState.currentPage) {
+                                    0 -> {
 
-                                              }
-                                              1->
-                                              {
+                                    }
 
-                                              }
-                                              2->
-                                              {
+                                    1 -> {
 
-                                              }
-                                          }
-                                },
+                                    }
+
+                                    2 -> {
+
+                                    }
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 15.dp, bottom = 15.dp)
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.icon_camera2),
+                                contentDescription = "TTS Button",
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 15.dp, bottom = 15.dp)
-                            ) {
-                                Image(
-                                    painter = painterResource(id = R.drawable.icon_camera2),
-                                    contentDescription = "TTS Button"
-                                )
-                            }
+                                        .size(100.dp)
+                            )
                         }
                     }
+
                 }
             }
         }

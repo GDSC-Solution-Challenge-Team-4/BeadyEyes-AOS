@@ -20,7 +20,7 @@ interface PointerService {
     companion object PointerApi {
         private const val CONNECT_TIMEOUT = 30L // in seconds
         private const val READ_TIMEOUT = 30L // in seconds
-        private const val BASE_URL = "http://35.216.66.135:8080"
+        private const val BASE_URL = "http://35.216.106.76:8080"
         private var apiService: PointerService? = null
 
         fun getInstance(): PointerService {
