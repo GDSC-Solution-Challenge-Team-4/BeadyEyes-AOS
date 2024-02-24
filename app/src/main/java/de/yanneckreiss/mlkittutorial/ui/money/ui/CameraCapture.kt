@@ -27,8 +27,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,60 +44,85 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.LifecycleStartEffect
 import com.google.common.util.concurrent.ListenableFuture
+import de.yanneckreiss.mlkittutorial.ui.pointer.pointer
 import de.yanneckreiss.mlkittutorial.util.classifyImage
 import de.yanneckreiss.mlkittutorial.util.loadImageBufferFromBitmap
+import java.io.File
 import java.lang.Math.min
+import java.util.Locale
 import java.util.concurrent.Executor
 
 
 @Composable
-fun CameraContentMoney(context: Context,
-                       modifier: Modifier = Modifier) {
+fun CameraContentMoney(
+    context: Context,
+    index: Int,
+    onResult: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+
+    //var loading by remember { mutableStateOf(true) }
+
     val cameraProviderFuture: ListenableFuture<ProcessCameraProvider> =
         remember { ProcessCameraProvider.getInstance(context) }
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    val imageCaptureExecutor = remember{ ContextCompat.getMainExecutor(context) }
+    val imageCaptureExecutor = remember { ContextCompat.getMainExecutor(context) }
     val imageCapture = remember {
         ImageCapture.Builder()
             .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
             .build()
     }
     val detectedText = remember { mutableStateOf("No text detected yet..") }
+    var result: String
+
+    var isCapturing by remember { mutableStateOf(false) }
 
     Box {
-        CameraPreview(imageCaptureExecutor,cameraProviderFuture, imageCapture, lifecycleOwner)
+        CameraPreview(imageCaptureExecutor, cameraProviderFuture, imageCapture, lifecycleOwner)
         Box(
             modifier = Modifier,
             contentAlignment = Alignment.BottomCenter
         ) {
             CaptureButton(
                 onClick = {
-                    captureImage(
-                        context,
-                        imageCapture = imageCapture,
-                        imageCaptureExecutor,
-                        detectedText
-                    )
+                    if (!isCapturing) {
+                        isCapturing = true
+                        captureImage(
+                            context,
+                            imageCapture = imageCapture,
+                            imageCaptureExecutor,
+                            detectedText,
+                            onResult = {
+                                result = it
+                                onResult(result)
+                            },
+                            onComplete = {
+                                isCapturing = false
+                            },
+                            index
+                        )
+                    }
                 },
                 modifier = Modifier.padding(16.dp)
             )
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(color = Color.Yellow, shape = RoundedCornerShape(8.dp))
-                    .padding(10.dp),
-                contentAlignment = Alignment.BottomCenter
-            ) {
-                Text(
-                    text = detectedText.value,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(color = Color.Yellow, shape = RoundedCornerShape(8.dp))
+                .padding(10.dp),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            Text(
+                text = detectedText.value,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }
+
 
 @Composable
 fun CameraPreview(
@@ -136,12 +163,24 @@ fun CameraPreview(
         }
 
 
-    LifecycleStartEffect(previewUseCase, cameraSelector, imageCapture, imageAnalysis, lifecycleOwner = lifecycleOwner) {
+    LifecycleStartEffect(
+        previewUseCase,
+        cameraSelector,
+        imageCapture,
+        imageAnalysis,
+        lifecycleOwner = lifecycleOwner
+    ) {
         try {
             cameraProvider.unbindAll()
-            cameraProvider.bindToLifecycle(this, cameraSelector, previewUseCase, imageCapture, imageAnalysis)
+            cameraProvider.bindToLifecycle(
+                this,
+                cameraSelector,
+                previewUseCase,
+                imageCapture,
+                imageAnalysis
+            )
             Log.d("MainActivity25", "바인딩 성공")
-        }catch (e: Exception){
+        } catch (e: Exception) {
             Log.d("MainActivity25", "바인딩 실패 $e")
         }
         onStopOrDispose {
@@ -175,7 +214,10 @@ fun captureImage(
     context: Context,
     imageCapture: ImageCapture,
     imageCaptureExecutor: Executor,
-    detectedText: MutableState<String>
+    detectedText: MutableState<String>,
+    onResult: (String) -> Unit,
+    onComplete: () -> Unit,
+    index: Int
 ) {
     val file = createTempFile(context)
     Log.d("MainActivity24", "${createTempFile(context)}")
@@ -188,12 +230,21 @@ fun captureImage(
         object : ImageCapture.OnImageSavedCallback {
             override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
                 //Log.d("MainActivity22", "Image saved: ${file.absolutePath}")
-                // Add your code here
-                var bitmapImage = BitmapFactory.decodeFile(file.absolutePath)
-                var bitmap = ThumbnailUtils.extractThumbnail(bitmapImage, min(bitmapImage.width, bitmapImage.height), min(bitmapImage.width, bitmapImage.height));
-                bitmap = Bitmap.createScaledBitmap(bitmap, 224, 224, false)
-                Log.d("MainActivity27", "Image saved: ${file.absolutePath}")
-                detectedText.value = classifyImage(context, bitmap)
+                if (index == 1) {
+                    var bitmapImage = BitmapFactory.decodeFile(file.absolutePath)
+                    var bitmap = ThumbnailUtils.extractThumbnail(
+                        bitmapImage,
+                        min(bitmapImage.width, bitmapImage.height),
+                        min(bitmapImage.width, bitmapImage.height)
+                    );
+                    bitmap = Bitmap.createScaledBitmap(bitmap, 224, 224, false)
+                    Log.d("MainActivity27", "Image saved: ${file.absolutePath}")
+                    detectedText.value = classifyImage(context, bitmap)
+                } else {
+                    detectedText.value = file.absolutePath
+                    onResult(detectedText.value)
+                }
+                onComplete()
             }
 
             override fun onError(exception: androidx.camera.core.ImageCaptureException) {
@@ -202,16 +253,16 @@ fun captureImage(
                     "Error capturing image: ${exception.message}",
                     exception
                 )
-                // Add your error handling here
+                onComplete()
             }
         }
     )
 }
 
-fun createTempFile(context: Context): java.io.File {
-    val timeStamp = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.getDefault())
-                                .format(java.util.Date())
+fun createTempFile(context: Context): File {
+    val timeStamp = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
+        .format(java.util.Date())
     val imageFileName = "JPEG_$timeStamp.jpg"
     val storageDir = context.getExternalFilesDir(android.os.Environment.DIRECTORY_PICTURES)
-    return java.io.File.createTempFile(imageFileName, ".jpg", storageDir)
+    return File.createTempFile(imageFileName, ".jpg", storageDir)
 }

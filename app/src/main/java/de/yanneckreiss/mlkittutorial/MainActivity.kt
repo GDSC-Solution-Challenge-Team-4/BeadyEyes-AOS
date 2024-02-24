@@ -152,8 +152,8 @@ class MainActivity : ComponentActivity() {
                                 if (index == pagerState.currentPage) {
                                     when (index) {
                                         0 -> MainScreen()
-                                        1 -> MoneyScreen()
-                                        2 -> PointerScreen()
+                                        1 -> MoneyScreen(index=index)
+                                        2 -> PointerScreen(index=index)
                                     }
                                 }
                                 LaunchedEffect(sttValue){

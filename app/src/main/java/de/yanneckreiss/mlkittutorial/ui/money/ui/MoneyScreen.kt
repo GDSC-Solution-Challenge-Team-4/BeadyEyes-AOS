@@ -34,7 +34,7 @@ import kotlinx.coroutines.delay
 import java.util.concurrent.Executor
 
 @Composable
-fun MoneyScreen(modifier: Modifier = Modifier) {
+fun MoneyScreen(index : Int, modifier: Modifier = Modifier) {
     val context: Context = LocalContext.current
     var showMessage by remember { mutableStateOf(false) }
 
@@ -87,7 +87,7 @@ fun MoneyScreen(modifier: Modifier = Modifier) {
             .fillMaxSize()
             .background(Color.White),
     ) {
-        CameraContentMoney(context = context, )
+        CameraContentMoney(context = context, index = index, onResult = { })
     }
 
 }
