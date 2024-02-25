@@ -65,17 +65,17 @@ fun pointer(file: String, detectedText: MutableState<String>, mainViewModel: Mai
     val requestFile = file1.asRequestBody("image/jpeg".toMediaTypeOrNull())//"image/jpeg"
     val body = MultipartBody.Part.createFormData("image", file1.name, requestFile)
 
-//    Log.d("포인터 파일 타입", file1::class.java.toString())
-//    Log.d("포인터 바디", body.toString())
-//    Log.d("포인터 리퀘스트 파일", requestFile.toString())
+    Log.d("포인터 파일 타입", file1::class.java.toString())
+    Log.d("포인터 바디", body.toString())
+    Log.d("포인터 리퀘스트 파일", requestFile.toString())
 
     api.postPointerImage(body).enqueue(object : Callback<PointerBackendResponse> {
         override fun onResponse(
             call: Call<PointerBackendResponse>,
             response: Response<PointerBackendResponse>
         ) {
-//            Log.d("포인터 성공", "Response code: ${response.code()}")
-//            Log.d("포인터 통신", response.body().toString())
+            Log.d("포인터 성공", "Response code: ${response.code()}")
+            Log.d("포인터 통신", response.body().toString())
             result = response.body()?.resultData.toString()
             //Log.d("포인터 msg", result)
             detectedText.value = result
