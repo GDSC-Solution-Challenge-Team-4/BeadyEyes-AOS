@@ -20,7 +20,7 @@ class RecordAndConvertToText : ActivityResultContract<Unit, ArrayList<String>?>(
         )
         intent.putExtra(
             RecognizerIntent.EXTRA_PROMPT,
-            "Speak Something"
+            "Speak Screen Name"
         )
 
         return intent

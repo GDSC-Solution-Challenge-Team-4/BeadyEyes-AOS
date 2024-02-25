@@ -2,6 +2,6 @@
 <resources>
 
     <style name="Theme.JetpackComposeMLKitTutorial"
-        parent="android:Theme.Material.Light.NoActionBar"
-        color=""/>
+        parent="android:Theme.Material.Light.NoActionBar">
+    </style>
 </resources>
