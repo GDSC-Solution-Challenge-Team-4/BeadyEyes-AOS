@@ -53,14 +53,19 @@ import androidx.lifecycle.compose.LifecycleStartEffect
 import de.yanneckreiss.mlkittutorial.ui.money.ui.MoneyScreen
 import de.yanneckreiss.mlkittutorial.ui.money.ui.ui.theme.JetpackComposeCameraXMLKitTutorialTheme
 import kotlinx.coroutines.delay
+import androidx.lifecycle.viewmodel.compose.viewModel
+import de.yanneckreiss.mlkittutorial.ui.dialog.DialogViewModel
+
 
 @Composable
-fun CameraScreen() {
-    CameraContent()
+fun CameraScreen(onTextValueChange: (String) -> Unit) {
+    CameraContent(onTextValueChange)
 }
 
 @Composable
-private fun CameraContent() {
+private fun CameraContent(
+    onTextValueChange: (String) -> Unit
+) {
     val context: Context = LocalContext.current
     val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
     val cameraController: LifecycleCameraController =
@@ -70,6 +75,11 @@ private fun CameraContent() {
     var textToSpeech: TextToSpeech? by remember { mutableStateOf(null) }
     var zoomValue by remember { mutableFloatStateOf(1f) }
     var showMessage by remember { mutableStateOf(false) }
+
+    fun onTextUpdated(updatedText: String) {
+        detectedText = updatedText
+        onTextValueChange(detectedText)
+    }
 
     DisposableEffect(Unit) {
         textToSpeech = TextToSpeech(context) { _ -> }
@@ -138,30 +148,31 @@ private fun CameraContent() {
         modifier = Modifier.fillMaxSize()
     ) { paddingValues: PaddingValues ->
 
-            AndroidView(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                factory = { context ->
-                    PreviewView(context).apply {
-                        layoutParams = LinearLayout.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.MATCH_PARENT
-                        )
-                        setBackgroundColor(Color.BLACK)
-                        implementationMode = PreviewView.ImplementationMode.COMPATIBLE
-                        scaleType = PreviewView.ScaleType.FILL_START
-                    }.also { previewView ->
-                        startTextRecognition(
-                            context = context,
-                            cameraController = cameraController,
-                            lifecycleOwner = lifecycleOwner,
-                            previewView = previewView,
-                            onDetectedTextUpdated = { detectedText = it }
-                        )
-                    }
+        AndroidView(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            factory = { context ->
+                PreviewView(context).apply {
+                    layoutParams = LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                    )
+                    setBackgroundColor(Color.BLACK)
+                    implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+                    scaleType = PreviewView.ScaleType.FILL_START
+                }.also { previewView ->
+                    startTextRecognition(
+                        context = context,
+                        cameraController = cameraController,
+                        lifecycleOwner = lifecycleOwner,
+                        previewView = previewView,
+                        onDetectedTextUpdated = { detectedText = it
+                            onTextValueChange(it)}
+                    )
                 }
-            )
+            }
+        )
 
         Box(
             modifier = Modifier
@@ -179,16 +190,8 @@ private fun CameraContent() {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun MoneyPreview() {
-    JetpackComposeCameraXMLKitTutorialTheme {
-        CameraScreen()
-    }
-}
 
-
-fun startTextRecognition(
+private fun startTextRecognition(
     context: Context,
     cameraController: LifecycleCameraController,
     lifecycleOwner: LifecycleOwner,
@@ -200,5 +203,7 @@ fun startTextRecognition(
         ContextCompat.getMainExecutor(context),
         TextRecognitionAnalyzer(onDetectedTextUpdated = onDetectedTextUpdated)
     )
+
+    cameraController.bindToLifecycle(lifecycleOwner)
     previewView.controller = cameraController
 }
