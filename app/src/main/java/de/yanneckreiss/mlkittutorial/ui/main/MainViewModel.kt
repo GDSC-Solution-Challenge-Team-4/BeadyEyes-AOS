@@ -1,4 +1,4 @@
-package de.yanneckreiss.mlkittutorial.ui.Main
+package de.yanneckreiss.mlkittutorial.ui.main
 
 import android.content.Context
 import android.speech.tts.TextToSpeech

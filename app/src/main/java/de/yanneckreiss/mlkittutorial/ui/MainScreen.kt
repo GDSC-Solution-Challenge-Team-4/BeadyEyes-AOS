@@ -8,7 +8,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
-import de.yanneckreiss.mlkittutorial.ui.Main.MainViewModel
+import de.yanneckreiss.mlkittutorial.ui.main.MainViewModel
 import de.yanneckreiss.mlkittutorial.ui.camera.CameraScreen
 import de.yanneckreiss.mlkittutorial.ui.no_permission.NoPermissionScreen
 

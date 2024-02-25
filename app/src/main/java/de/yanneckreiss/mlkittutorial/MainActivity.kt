@@ -5,20 +5,20 @@ import android.content.Context
 import android.app.Activity
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
-import androidx.camera.core.ImageCapture
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -30,9 +30,9 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Icon
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults.buttonColors
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -45,7 +45,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.graphics.Color.Companion.Gray
 import androidx.compose.ui.graphics.Color.Companion.White
@@ -57,13 +56,9 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.zIndex
-import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -71,36 +66,36 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.skydoves.balloon.ArrowPositionRules
 import com.skydoves.balloon.BalloonAnimation
 import com.skydoves.balloon.BalloonSizeSpec
+import com.skydoves.balloon.annotations.InternalBalloonApi
 import com.skydoves.balloon.compose.Balloon
 import com.skydoves.balloon.compose.BalloonWindow
 import com.skydoves.balloon.compose.rememberBalloonBuilder
-import com.skydoves.balloon.compose.setArrowColor
 import de.yanneckreiss.cameraxtutorial.R
-import de.yanneckreiss.mlkittutorial.ui.Main.MainViewModel
 import de.yanneckreiss.mlkittutorial.ui.MainScreen
 import de.yanneckreiss.mlkittutorial.ui.RecordAndConvertToText
 import de.yanneckreiss.mlkittutorial.ui.dialog.DialogViewModel
+import de.yanneckreiss.mlkittutorial.ui.main.MainViewModel
 import de.yanneckreiss.mlkittutorial.ui.money.ui.MoneyScreen
-import de.yanneckreiss.mlkittutorial.ui.money.ui.captureImage
 import de.yanneckreiss.mlkittutorial.ui.pointer.PointerScreen
-import de.yanneckreiss.mlkittutorial.ui.theme.JetpackComposeMLKitTutorialTheme
-import kotlinx.coroutines.launch
-import java.sql.Types.NULL
+import de.yanneckreiss.mlkittutorial.ui.theme.JetpackComposeBeadyEyesTheme
+import de.yanneckreiss.mlkittutorial.ui.theme.MainYellow
+import de.yanneckreiss.mlkittutorial.ui.theme.Purple40
 
 
 class MainActivity : ComponentActivity() {
-    @OptIn(ExperimentalFoundationApi::class, ExperimentalPermissionsApi::class)
+    @OptIn(ExperimentalFoundationApi::class, ExperimentalPermissionsApi::class,
+        InternalBalloonApi::class
+    )
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             val context: Context = LocalContext.current
             var textToSpeech: TextToSpeech? by remember { mutableStateOf(null) }
             var sttValue by remember { mutableStateOf("") }
-            var pageName by remember { mutableStateOf("") }
             val dialogViewModel: DialogViewModel = viewModel()
             val mainViewModel: MainViewModel = viewModel()
 
-            var showedText = remember { mutableStateOf("No text detected yet..") }
+            var showedText by remember { mutableStateOf("No text detected yet..") }
 
             var backPressedState by remember { mutableStateOf(true) }
             var backPressedTime = 0L
@@ -110,9 +105,9 @@ class MainActivity : ComponentActivity() {
             var isFullView by remember { mutableStateOf(false) }
             val lifecycleOwner = LocalLifecycleOwner.current
             var balloonWindow: BalloonWindow? by remember { mutableStateOf(null) }
+            var isBalloonShowing by remember { mutableStateOf(false) }
             val scrollState = rememberScrollState()
 
-            //tts
 
             val permissionState = rememberPermissionState(
                 permission = Manifest.permission.RECORD_AUDIO
@@ -137,20 +132,30 @@ class MainActivity : ComponentActivity() {
                 setArrowPositionRules(ArrowPositionRules.ALIGN_ANCHOR)
                 setArrowSize(10)
                 setArrowPosition(0.5f)
-                setPadding(12)
+                setPadding(5)
                 setCornerRadius(8f)
                 setBackgroundColorResource(R.color.white)
                 setBalloonAnimation(BalloonAnimation.ELASTIC)
-                build()
+                setOnBalloonDismissListener {
+                    mainViewModel.stopPlay()
+                    //balloonWindow?.updateSizeOfBalloonCard(250,250)
+                    isBalloonShowing = false
+                }
             }
             LaunchedEffect(Unit) {
                 //toast message
                 mainViewModel.toastMessage.observe(lifecycleOwner) {
                     Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
                 }
+                textToSpeech = TextToSpeech(context) {}
             }
-
-            JetpackComposeMLKitTutorialTheme {
+            LaunchedEffect(mainViewModel.state) {
+                showedText = mainViewModel.state.value.detectedtext
+            }
+            SideEffect {
+                permissionState.launchPermissionRequest()
+            }
+            JetpackComposeBeadyEyesTheme {
                 val tabItems = listOf(
                     TabItem(
                         title = "money",
@@ -166,7 +171,7 @@ class MainActivity : ComponentActivity() {
                     )
                 )
                 BackHandler(enabled = backPressedState) {
-                    if(System.currentTimeMillis() - backPressedTime <= 400L) {
+                    if (System.currentTimeMillis() - backPressedTime <= 400L) {
                         // 앱 종료
                         (context as Activity).finish()
                     } else {
@@ -176,35 +181,13 @@ class MainActivity : ComponentActivity() {
                     }
                     backPressedTime = System.currentTimeMillis()
                 }
-                val permissionState =
-                    rememberPermissionState(permission = Manifest.permission.RECORD_AUDIO)
                 val pagerState = rememberPagerState { tabItems.size }
-                var balloonResource = remember { mutableStateOf(0)}
-
-                LaunchedEffect(Unit) {
-                    textToSpeech = TextToSpeech(context) {}
+                LaunchedEffect(pagerState.currentPage) {
+                    mainViewModel.initializeTextToSpeech(context)
+                    mainViewModel.startSpeak(ttsIndex(pagerState.currentPage))
                 }
-                SideEffect {
-                    permissionState.launchPermissionRequest()
-                }
-//                LaunchedEffect(pagerState.currentPage) {
-//                    pageName = ttsIndex(pagerState.currentPage)
-//                    textToSpeech?.speak(
-//                        ttsIndex(pagerState.currentPage),
-//                        TextToSpeech.QUEUE_FLUSH,
-//                        null,
-//                        null
-//                    )
-//                }
-                lifecycleScope.launch {
-                }
-
                 Surface(modifier = Modifier.fillMaxSize()) {
                     Column(modifier = Modifier.fillMaxWidth()) {
-                        LaunchedEffect(pagerState.currentPage) {
-                            mainViewModel.initializeTextToSpeech(context)
-                            mainViewModel.startSpeak(ttsIndex(pagerState.currentPage))
-                        }
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -231,7 +214,10 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                             Text(
-                                text = ttsIndex(pagerState.currentPage), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Black,
+                                text = ttsIndex(pagerState.currentPage),
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Black,
                                 modifier = Modifier.padding(20.dp)
                             )
                             IconButton(
@@ -249,11 +235,11 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                         }
-                        Box (
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .weight(1f)
-                        ){
+                        ) {
                             HorizontalPager(
                                 state = pagerState,
                                 modifier = Modifier
@@ -271,13 +257,9 @@ class MainActivity : ComponentActivity() {
                                         }
                                     }
                                     LaunchedEffect(sttValue) {
-                                        //TextToSpeech?.speak(ttsIndex(pagerState.currentPage),TextToSpeech.QUEUE_FLUSH,null,null)
                                         when (sttValue) {
                                             "[텍스트]", "[text]" -> pagerState.scrollToPage(0)
-                                            "[돈]", "[지폐]", "[money]", "[currency]" -> pagerState.scrollToPage(
-                                                1
-                                            )
-
+                                            "[돈]", "[지폐]", "[money]", "[currency]" -> pagerState.scrollToPage(1)
                                             "[포인터]", "[pointer]" -> pagerState.scrollToPage(2)
                                         }
                                     }
@@ -292,40 +274,49 @@ class MainActivity : ComponentActivity() {
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .height(250.dp),
-                                        shadowElevation = 10.dp
+                                        shadowElevation = 20.dp
                                     ) {
                                         Column(
                                             Modifier
                                                 .fillMaxSize()
+                                                .background(White)
                                                 .padding(12.dp)
                                                 .verticalScroll(scrollState)
                                         ) {
                                             Text(
-                                                text = showedText.value,
-                                                // showedText, // 텍스트 설정
-                                                color = Color.Black, // 텍스트 색상을 흰색으로 설정
-                                                // '전체보기' 버튼 클릭 여부에 따라 Modifier 변경
+                                                text = showedText,
+                                                modifier = Modifier.fillMaxSize(),
+                                                color = Black,
                                                 maxLines = if (isFullView) {
                                                     Int.MAX_VALUE
                                                 } else {
                                                     7
-                                                } // '전체보기' 버튼 클릭 여부에 따라 maxLines 변경
+                                                }
                                             )
                                             Row(
                                                 Modifier
                                                     .fillMaxWidth()
+                                                    //.weight(1F)
                                                     .padding(8.dp),
-                                                horizontalArrangement = Arrangement.End
+                                                horizontalArrangement = Arrangement.End,
+                                                verticalAlignment = Alignment.Bottom
                                             ) {
-                                                Button(onClick = {
-                                                    mainViewModel.stopPlay()
-                                                    mainViewModel.state.value.isButtonEnabled = true
-                                                    balloonWindow?.dismiss()
-                                                }) {
+                                                Button(
+                                                    onClick = {
+                                                        mainViewModel.stopPlay()
+                                                        mainViewModel.state.value.isButtonEnabled =
+                                                            true
+                                                        balloonWindow?.dismiss()
+                                                    },
+                                                    colors=buttonColors(MainYellow)
+                                                ) {
                                                     Text("멈추기")
                                                 }
                                                 Spacer(Modifier.width(8.dp))
-                                                Button(onClick = { isFullView = !isFullView }) {
+                                                Button(
+                                                    onClick = { isFullView = !isFullView },
+                                                    colors=buttonColors(MainYellow)
+                                                ) {
                                                     Text("전체보기")
                                                 }
                                             }
@@ -333,11 +324,9 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                             ) { window: BalloonWindow ->
-                                // BalloonWindow에 대한 상태를 관리하는 변수 추가
-                                var isBalloonShowing by remember { mutableStateOf(false) }
-
                                 IconButton(
                                     onClick = {
+                                        isBalloonShowing = true
                                         window.showAlignBottom()
                                     },
                                     modifier = Modifier
@@ -345,10 +334,6 @@ class MainActivity : ComponentActivity() {
                                         .size(50.dp)
                                         .align(Alignment.TopEnd)
                                 ) {
-                                    LaunchedEffect(window.balloon.isShowing) {
-                                        // Balloon이 나타났거나 사라질 때마다 상태를 갱신
-                                        isBalloonShowing = window.balloon.isShowing
-                                    }
                                     Image(
                                         painter = if (isBalloonShowing) {
                                             painterResource(id = R.drawable.icon_top_arrow)
@@ -362,23 +347,22 @@ class MainActivity : ComponentActivity() {
                         }
                         IconButton(
                             onClick = {
-                                showedText.value = mainViewModel.state.value.detectedtext
-                                mainViewModel.startSpeak(
-                                    showedText.value
-                                    //해석안된건 showed text
-                                )
+                                showedText = mainViewModel.state.value.detectedtext
+                                mainViewModel.startSpeak(showedText)
+                                isBalloonShowing = true
                                 balloonWindow?.showAlignBottom(110, 30)
                             },
-                            enabled = mainViewModel.state.value.isButtonEnabled,
+                            //enabled = mainViewModel.state.value.isButtonEnabled,
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .height(100.dp)
                                 .padding(top = 15.dp, bottom = 15.dp)
                         ) {
                             Image(
-                                painter = painterResource(id = R.drawable.icon_camera2),
+                                painter = painterResource(id = R.drawable.icon_bottom_tts_png),
                                 contentDescription = "TTS Button",
                                 modifier = Modifier
-                                        .size(100.dp)
+                                    .size(70.dp)
                             )
                         }
                     }
@@ -386,21 +370,33 @@ class MainActivity : ComponentActivity() {
                 }
                 if (dialogViewModel.isHelpDialogShown) {
                     AlertDialog(
-                        onDismissRequest = dialogViewModel::onDismissHelpDialog,
+                        shape = RoundedCornerShape(15.dp),
+                        icon= {painterResource(id = R.drawable.icon_main_logo)},
+                        onDismissRequest =
+                            dialogViewModel::onDismissHelpDialog,
                         confirmButton = {
-                            Button(onClick = {
-                                mainViewModel.stopPlay()
-                                mainViewModel.startSpeak(text = mainViewModel.state.value.help_dialog)
-                            }) {
+                            Button(
+                                onClick = {
+                                    mainViewModel.stopPlay()
+                                    mainViewModel.startSpeak(text = mainViewModel.state.value.help_dialog)
+                                },
+                                colors=buttonColors(MainYellow)
+                            ) {
                                 Text(text = "한번 더 듣기")
                             }
                         },
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .fillMaxHeight()
+                            .padding(start = 10.dp, top = 80.dp, bottom = 80.dp, end = 10.dp),
                         dismissButton = {
                             Button(
                                 onClick = {
                                     dialogViewModel.onDismissHelpDialog()
                                     mainViewModel.stopPlay()
-                                }) {
+                                },
+                                colors=buttonColors(MainYellow)
+                            ) {
                                 Text(text = "나가기")
                             }
                         },
@@ -437,19 +433,4 @@ fun ttsIndex(index: Int): String {
         2 -> string = "Pointer Screen"
     }
     return string
-}
-
-@Composable
-fun getInitialPainter(): Painter {
-    return getTopArrowPainter() // 초기화된 이미지로 설정
-}
-
-@Composable
-fun getTopArrowPainter(): Painter {
-    return painterResource(id = R.drawable.icon_top_arrow)
-}
-
-@Composable
-fun getDownArrowPainter(): Painter {
-    return painterResource(id = R.drawable.icon_down_arrow)
 }

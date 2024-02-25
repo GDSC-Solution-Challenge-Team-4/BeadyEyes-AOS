@@ -12,5 +12,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "Pointer"
+rootProject.name = "Beady Eyes"
 include ':app'
