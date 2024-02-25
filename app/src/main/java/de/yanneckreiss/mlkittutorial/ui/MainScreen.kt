@@ -13,7 +13,6 @@ import de.yanneckreiss.mlkittutorial.ui.camera.CameraScreen
 import de.yanneckreiss.mlkittutorial.ui.no_permission.NoPermissionScreen
 
 @OptIn(ExperimentalPermissionsApi::class)
-@SuppressLint("SuspiciousIndentation")
 @Composable
 fun MainScreen(mainViewModel: MainViewModel) {
 

@@ -6,12 +6,13 @@ import de.yanneckreiss.cameraxtutorial.ml.Model
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 import java.nio.ByteBuffer
+import java.nio.ByteBuffer.allocateDirect
 import java.nio.ByteOrder
 
 private const val IMAGE_SIZE = 224
 
 fun loadImageBufferFromBitmap(bitmap: Bitmap): ByteBuffer {
-    val byteBuffer = ByteBuffer.allocate(4 * IMAGE_SIZE * IMAGE_SIZE * 3)
+    val byteBuffer = allocateDirect(4 * IMAGE_SIZE * IMAGE_SIZE * 3)
     byteBuffer.order(ByteOrder.nativeOrder())
 
     val pixels = IntArray(IMAGE_SIZE * IMAGE_SIZE)
@@ -36,6 +37,7 @@ fun classifyImage(context: Context, bitmap: Bitmap): String {
     val inputFeature0 = TensorBuffer.createFixedSize(intArrayOf(1, 224, 224, 3), DataType.FLOAT32)
 
     val byteBuffer = loadImageBufferFromBitmap(bitmap)
+
     inputFeature0.loadBuffer(byteBuffer)
 
     val outputs = model.process(inputFeature0)
@@ -44,15 +46,16 @@ fun classifyImage(context: Context, bitmap: Bitmap): String {
     val confidences = outputFeature0.floatArray
     val maxIndex = confidences.indexOfFirst { it == confidences.max() }
 
+
     val classes = arrayOf(
-        "500원",
-        "100원",
         "10원",
+        "50원",
+        "100원",
+        "500원",
         "1000원",
         "5000원",
         "10000원",
         "50000원",
-        "50원",
         "1다임",
         "쿼터달러",
         "1달러",
