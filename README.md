@@ -73,3 +73,8 @@ You can also use adb to issue commands, as follows:
 ---
 If you want more detailed information, please visit the following link: 
 https://developer.android.com/studio/run/device?_gl=1*1brd377*_up*MQ..*_ga*MTgyOTIyNjQxNS4xNzA4Nzk0MDQx*_ga_6HH9YJMN9M*MTcwODc5NDA0MS4xLjAuMTcwODc5NDA0MS4wLjAuMA..
+
+---
+
+#### The application requires Android API level 34 or higher. 
+#### It also requires permissions for audio recording and camera usage to be granted while the application is in use
