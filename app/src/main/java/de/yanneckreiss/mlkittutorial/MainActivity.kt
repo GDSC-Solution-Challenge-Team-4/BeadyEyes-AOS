@@ -10,9 +10,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,7 +34,6 @@ import androidx.compose.material3.ButtonDefaults.buttonColors
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
@@ -45,25 +42,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.graphics.Color.Companion.Gray
 import androidx.compose.ui.graphics.Color.Companion.White
-import androidx.compose.ui.graphics.Color.Companion.Yellow
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.view.WindowCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -71,11 +63,9 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.skydoves.balloon.ArrowPositionRules
 import com.skydoves.balloon.BalloonAnimation
 import com.skydoves.balloon.BalloonSizeSpec
-import com.skydoves.balloon.annotations.InternalBalloonApi
 import com.skydoves.balloon.compose.Balloon
 import com.skydoves.balloon.compose.BalloonWindow
 import com.skydoves.balloon.compose.rememberBalloonBuilder
-import com.skydoves.balloon.overlay.BalloonOverlayAnimation
 import com.skydoves.balloon.overlay.BalloonOverlayRoundRect
 import de.yanneckreiss.cameraxtutorial.R
 import de.yanneckreiss.mlkittutorial.ui.MainScreen
@@ -84,17 +74,10 @@ import de.yanneckreiss.mlkittutorial.ui.dialog.DialogViewModel
 import de.yanneckreiss.mlkittutorial.ui.main.MainViewModel
 import de.yanneckreiss.mlkittutorial.ui.money.ui.MoneyScreen
 import de.yanneckreiss.mlkittutorial.ui.pointer.PointerScreen
-import de.yanneckreiss.mlkittutorial.ui.splash.SplashScreen
 import de.yanneckreiss.mlkittutorial.ui.theme.JetpackComposeBeadyEyesTheme
 import de.yanneckreiss.mlkittutorial.ui.theme.MainYellow
 import de.yanneckreiss.mlkittutorial.ui.theme.pretendard_bold
 import de.yanneckreiss.mlkittutorial.ui.theme.pretendard_light
-import de.yanneckreiss.mlkittutorial.ui.theme.pretendard_regular
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalPermissionsApi::class)
@@ -112,14 +95,11 @@ class MainActivity : ComponentActivity() {
             var backPressedState by remember { mutableStateOf(true) }
             var backPressedTime = 0L
 
-
-            var textVisible by remember { mutableStateOf(false) }
             var isFullView by remember { mutableStateOf(false) }
             val lifecycleOwner = LocalLifecycleOwner.current
             var balloonWindow: BalloonWindow? by remember { mutableStateOf(null) }
             var isBalloonShowing by remember { mutableStateOf(false) }
             val scrollState = rememberScrollState()
-            var splashToggle by remember { mutableStateOf(false) }
 
             val permissionState = rememberPermissionState(
                 permission = Manifest.permission.RECORD_AUDIO
@@ -136,14 +116,13 @@ class MainActivity : ComponentActivity() {
             )
             val balloonBuilder = rememberBalloonBuilder {
                 setWidthRatio(1.0f)
-                setWidth(BalloonSizeSpec.WRAP) // sets width size depending on the content's size.
-                setHeight(BalloonSizeSpec.WRAP) // sets height size depending on the content's size.
+                setWidth(BalloonSizeSpec.WRAP)
+                setHeight(BalloonSizeSpec.WRAP)
                 setText("Edit your profile here!")
                 setTextColorResource(R.color.white)
                 setTextSize(15f)
                 setArrowPositionRules(ArrowPositionRules.ALIGN_ANCHOR)
                 setArrowSize(10)
-                //setArrowPosition(0.5f)
                 setArrowPosition(0.91F)
                 setCornerRadius(8f)
                 setBalloonAnimation(BalloonAnimation.OVERSHOOT)
@@ -152,13 +131,11 @@ class MainActivity : ComponentActivity() {
                 setOverlayShape(BalloonOverlayRoundRect(12f, 12f))
                 setOnBalloonDismissListener {
                     mainViewModel.stopPlay()
-                    //balloonWindow?.updateSizeOfBalloonCard(250,250)
                     isBalloonShowing = false
                 }
             }
 
             LaunchedEffect(Unit) {
-                delay(3000)
                 mainViewModel.toastMessage.observe(lifecycleOwner) {
                     Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
                 }
@@ -192,7 +169,7 @@ class MainActivity : ComponentActivity() {
                     } else {
                         mainViewModel.stopPlay()
                         backPressedState = true
-                        Toast.makeText(context, "한 번 더 누르시면 앱이 종료됩니다.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Press one more time to exit the app.", Toast.LENGTH_SHORT).show()
                     }
                     backPressedTime = System.currentTimeMillis()
                 }
@@ -236,7 +213,7 @@ class MainActivity : ComponentActivity() {
                                 color = Black,
                                 modifier = Modifier
                                     .align(Alignment.Bottom)
-                                    .padding(bottom=10.dp)
+                                    .padding(bottom = 10.dp)
                             )
                             IconButton(
                                 onClick = {
@@ -276,9 +253,10 @@ class MainActivity : ComponentActivity() {
                                     }
                                     LaunchedEffect(sttValue) {
                                         when (sttValue) {
-                                            "[텍스트]", "[text]" -> pagerState.scrollToPage(0)
-                                            "[돈]", "[지폐]", "[money]", "[currency]" -> pagerState.scrollToPage(1)
-                                            "[포인터]", "[pointer]" -> pagerState.scrollToPage(2)
+                                            "[텍스트]", "[Text]","[Text Screen]","[text]","[text screen]" -> pagerState.scrollToPage(0)
+                                            "[돈]", "[지폐]", "[Money]", "[Money Screen]","[Currency]","[Currency Screen]",
+                                                "[money]", "[money screen]","[currency]","[currency Screen]", -> pagerState.scrollToPage(1)
+                                            "[포인터]", "[Pointer]","[pointer]","[Pointer Screen]", "[pointer screen]"  -> pagerState.scrollToPage(2)
                                         }
                                     }
                                 }
@@ -298,17 +276,19 @@ class MainActivity : ComponentActivity() {
                                             .height(250.dp),
                                         shadowElevation = 20.dp
                                     ) {
-                                        Column(
+                                        Box(
                                             Modifier
                                                 .fillMaxSize()
-                                                .background(White)
                                                 .padding(12.dp)
                                                 .verticalScroll(scrollState)
                                         ) {
                                             Text(
                                                 text = showedText,
-                                                modifier = Modifier.fillMaxSize(),
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .padding(bottom=60.dp),
                                                 color = Black,
+                                                fontSize = 18.sp,
                                                 maxLines = if (isFullView) {
                                                     Int.MAX_VALUE
                                                 } else {
@@ -317,9 +297,9 @@ class MainActivity : ComponentActivity() {
                                             )
                                             Row(
                                                 Modifier
-                                                    .fillMaxWidth()
-                                                    //.weight(1F)
-                                                    .padding(8.dp),
+                                                    .fillMaxSize()
+                                                    .padding(8.dp)
+                                                    .align(Alignment.BottomEnd),
                                                 horizontalArrangement = Arrangement.End,
                                                 verticalAlignment = Alignment.Bottom
                                             ) {
@@ -330,16 +310,24 @@ class MainActivity : ComponentActivity() {
                                                             true
                                                         balloonWindow?.dismiss()
                                                     },
-                                                    colors=buttonColors(MainYellow)
+                                                    colors = buttonColors(MainYellow),
+                                                    modifier = Modifier.semantics {
+                                                        this.contentDescription =
+                                                            "TTS stop button"
+                                                    }
                                                 ) {
-                                                    Text("멈추기")
+                                                    Text("Stop")
                                                 }
                                                 Spacer(Modifier.width(8.dp))
                                                 Button(
                                                     onClick = { isFullView = !isFullView },
-                                                    colors=buttonColors(MainYellow)
+                                                    colors = buttonColors(MainYellow),
+                                                    modifier = Modifier.semantics {
+                                                        this.contentDescription =
+                                                            "view all button"
+                                                    }
                                                 ) {
-                                                    Text("전체보기")
+                                                    Text("See All")
                                                 }
                                             }
                                         }
@@ -362,7 +350,7 @@ class MainActivity : ComponentActivity() {
                                         } else {
                                             painterResource(id = R.drawable.icon_down_arrow)
                                         },
-                                        contentDescription = "화살표 아이콘"
+                                        contentDescription = "showing text"
                                     )
                                 }
                             }
@@ -392,16 +380,19 @@ class MainActivity : ComponentActivity() {
                 if (dialogViewModel.isHelpDialogShown) {
                     AlertDialog(
                         shape = RoundedCornerShape(15.dp),
-                        icon= {painterResource(id = R.drawable.icon_main_logo)},
+                        icon = { painterResource(id = R.drawable.icon_main_logo) },
                         onDismissRequest =
-                            dialogViewModel::onDismissHelpDialog,
+                        dialogViewModel::onDismissHelpDialog,
                         confirmButton = {
                             Button(
                                 onClick = {
                                     mainViewModel.stopPlay()
                                     mainViewModel.startSpeak(text = mainViewModel.state.value.help_dialog)
                                 },
-                                colors=buttonColors(MainYellow)
+                                colors = buttonColors(MainYellow),
+                                modifier = Modifier.semantics {
+                                    this.contentDescription = "listen one more button"
+                                }
                             ) {
                                 Text(text = "한번 더 듣기")
                             }
@@ -416,14 +407,17 @@ class MainActivity : ComponentActivity() {
                                     dialogViewModel.onDismissHelpDialog()
                                     mainViewModel.stopPlay()
                                 },
-                                colors=buttonColors(MainYellow)
+                                colors = buttonColors(MainYellow),
+                                modifier = Modifier.semantics {
+                                    this.contentDescription = "exit button"
+                                }
                             ) {
-                                Text(text = "나가기")
+                                Text(text = "Exit")
                             }
                         },
                         title = {
                             Text(
-                                text = "How to use",
+                                text = "Help",
                                 modifier = Modifier.fillMaxWidth(),
                                 textAlign = TextAlign.Center,
                                 fontFamily = pretendard_bold

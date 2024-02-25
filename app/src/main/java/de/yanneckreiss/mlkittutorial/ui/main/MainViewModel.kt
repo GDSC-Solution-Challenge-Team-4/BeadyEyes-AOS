@@ -80,34 +80,37 @@ class MainViewModel : ViewModel() {
                     )
 
                 } else {
-                    showState("TTS 객체 초기화 중 에러가 발생했습니다.")
+                    showState("An error occurred during TTS object initialization.")
                 }
             }.apply {
-                this?.setOnUtteranceProgressListener(
+                this.setOnUtteranceProgressListener(
                     object : UtteranceProgressListener() {
-                    override fun onStart(s: String) {
-                        _state.value = _state.value.copy(
-                            isButtonEnabled = false
+                        override fun onStart(s: String) {
+                            _state.value = _state.value.copy(
+                                isButtonEnabled = false
+                            )
+                        }
+
+                        override fun onDone(s: String) {
+                            _state.value = _state.value.copy(
+                                isButtonEnabled = true
+                            )
+                            clearAll()
+                        }
+
+                        @Deprecated("Deprecated in Java",
+                            ReplaceWith("showState(\"An error occurred during playback.\")")
                         )
-                    }
+                        override fun onError(s: String) {
+                            showState("An error occurred during playback.")
+                        }
 
-                    override fun onDone(s: String) {
-                        _state.value = _state.value.copy(
-                            isButtonEnabled = true
-                        )
-                        clearAll()
-                    }
-
-                    override fun onError(s: String) {
-                        showState("재생 중 에러가 발생했습니다.")
-                    }
-
-                    override fun onRangeStart(
-                        utteranceId: String, start: Int, end: Int, frame: Int
-                    ) {
-                        lastPlayIndex = start
-                    }
-                })
+                        override fun onRangeStart(
+                            utteranceId: String, start: Int, end: Int, frame: Int
+                        ) {
+                            lastPlayIndex = start
+                        }
+                    })
             }
         }
     }

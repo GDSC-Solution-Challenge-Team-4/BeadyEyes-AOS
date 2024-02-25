@@ -7,7 +7,6 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -20,7 +19,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.VerticalAlignmentLine
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -28,11 +26,9 @@ import androidx.compose.ui.unit.sp
 import de.yanneckreiss.cameraxtutorial.R
 import de.yanneckreiss.mlkittutorial.ui.theme.MainYellow
 import de.yanneckreiss.mlkittutorial.ui.theme.pretendard_light
-import de.yanneckreiss.mlkittutorial.ui.theme.pretendard_regular
 
 @Composable
 fun SplashScreen(modifier: Modifier=Modifier.fillMaxSize()) {
-    // 애니메이션 효과를 위한 상태 변수
     val alpha by rememberInfiniteTransition(label = "").animateFloat(
         initialValue = 0.1f,
         targetValue = 1f,
@@ -42,7 +38,6 @@ fun SplashScreen(modifier: Modifier=Modifier.fillMaxSize()) {
         ), label = ""
     )
 
-    // Splash 화면 구성
     Surface(
         color = MainYellow, // 배경색 설정
         modifier = Modifier.fillMaxSize()
@@ -51,7 +46,6 @@ fun SplashScreen(modifier: Modifier=Modifier.fillMaxSize()) {
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            // 로고 이미지 표시
             val logo = painterResource(id = R.drawable.icon_splash)
             Image(
                 painter = logo,
