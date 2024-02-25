@@ -222,7 +222,7 @@ fun captureImage(
         imageCaptureExecutor,
         object : ImageCapture.OnImageSavedCallback {
             override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                //Log.d("MainActivity22", "Image saved: ${file.absolutePath}")
+                Log.d("돈", "Image saved: ${file.absolutePath}")
                 if (index == 1) {
                     var bitmapImage = BitmapFactory.decodeFile(file.absolutePath)
                     var bitmap = ThumbnailUtils.extractThumbnail(

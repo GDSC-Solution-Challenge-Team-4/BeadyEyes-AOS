@@ -45,14 +45,24 @@ fun classifyImage(context: Context, bitmap: Bitmap): String {
     val maxIndex = confidences.indexOfFirst { it == confidences.max() }
 
     val classes = arrayOf(
-            "500원",
-            "100원",
-            "10원",
-            "1000원",
-            "5000원",
-            "10000원",
-            "50000원",
-            "50원")
+        "500원",
+        "100원",
+        "10원",
+        "1000원",
+        "5000원",
+        "10000원",
+        "50000원",
+        "50원",
+        "1다임",
+        "쿼터달러",
+        "1달러",
+        "2달러",
+        "5달러",
+        "10달러",
+        "20달러",
+        "50달러",
+        "100달러"
+    )
 
     val result = classes[maxIndex]
 

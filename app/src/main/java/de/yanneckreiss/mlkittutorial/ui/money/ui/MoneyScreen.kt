@@ -1,7 +1,11 @@
 package de.yanneckreiss.mlkittutorial.ui.money.ui
 
 import android.content.Context
-import androidx.camera.core.ImageCapture
+import android.os.Bundle
+import android.speech.tts.TextToSpeech
+import android.util.Log
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.keyframes
@@ -31,12 +35,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import de.yanneckreiss.mlkittutorial.ui.Main.MainViewModel
 import de.yanneckreiss.mlkittutorial.ui.money.ui.ui.theme.JetpackComposeCameraXMLKitTutorialTheme
 import kotlinx.coroutines.delay
 import java.util.concurrent.Executor
 
 @Composable
-fun MoneyScreen(index : Int, modifier: Modifier = Modifier) {
+fun MoneyScreen(index : Int, mainViewModel: MainViewModel, modifier: Modifier = Modifier) {
     val context: Context = LocalContext.current
     var showMessage by remember { mutableStateOf(false) }
     val detectedText = remember { mutableStateOf("No text detected yet..") }
@@ -90,7 +96,12 @@ fun MoneyScreen(index : Int, modifier: Modifier = Modifier) {
             .fillMaxSize()
             .background(Color.White),
     ) {
-        CameraContentMoney(context = context, index = index, onResult = { detectedText.value = it })
+        CameraContentMoney(context = context, index = index,
+            onResult = {
+                detectedText.value = it
+                Log.d("돈",it)
+                mainViewModel.onTextValueChange(it)
+        })
         Box(
             modifier = Modifier
                 .fillMaxWidth()

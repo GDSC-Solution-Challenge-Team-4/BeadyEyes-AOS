@@ -33,6 +33,7 @@ import de.yanneckreiss.mlkittutorial.ui.pointer.ui.theme.JetpackComposeCameraXML
 import kotlinx.coroutines.delay
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
+import de.yanneckreiss.mlkittutorial.ui.Main.MainViewModel
 import de.yanneckreiss.mlkittutorial.ui.money.ui.CameraContentMoney
 import de.yanneckreiss.mlkittutorial.ui.pointer.network.PointerBackendResponse
 import de.yanneckreiss.mlkittutorial.ui.pointer.network.PointerService
@@ -48,7 +49,7 @@ import java.io.File
 import java.io.IOException
 
 @Composable
-fun PointerScreen(index: Int, modifier: Modifier = Modifier) {
+fun PointerScreen(index: Int, mainViewModel: MainViewModel,modifier: Modifier = Modifier) {
 
     val context: Context = LocalContext.current
     var showMessage by remember { mutableStateOf(false) }
@@ -99,6 +100,7 @@ fun PointerScreen(index: Int, modifier: Modifier = Modifier) {
         }
     }
 
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -110,10 +112,10 @@ fun PointerScreen(index: Int, modifier: Modifier = Modifier) {
             onResult = {
                 filePathResult = it
                 Log.d("newResult", "Response code: $filePathResult")
-                pointer(filePathResult, detectedText)
-
+                pointer(filePathResult, detectedText, mainViewModel)
             }
         )
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -141,7 +143,7 @@ fun PointerPreview() {
 }
 
 
-fun pointer(file: String, detectedText: MutableState<String>) {
+fun pointer(file: String, detectedText: MutableState<String>, mainViewModel: MainViewModel) {
 
     var result : String
 
@@ -150,7 +152,7 @@ fun pointer(file: String, detectedText: MutableState<String>) {
     val fileSize = file1.length()
     Log.d("포인터 File Size", "파일 크기: $fileSize 바이트")
 
-    val requestFile = file1.asRequestBody("form-data/*".toMediaTypeOrNull())//"image/jpeg"
+    val requestFile = file1.asRequestBody("image/jpeg".toMediaTypeOrNull())//"image/jpeg"
     val body = MultipartBody.Part.createFormData("image", file1.name, requestFile)
 
     Log.d("포인터 파일 타입", file1::class.java.toString())
@@ -167,6 +169,7 @@ fun pointer(file: String, detectedText: MutableState<String>) {
             result = response.body()?.resultData.toString()
             Log.d("포인터 msg", result)
             detectedText.value = result
+            mainViewModel.onTextValueChange(result)
         }
         override fun onFailure(call: Call<PointerBackendResponse>, t: Throwable) {
             Log.e("포인터 네트워크 오류", "Unknown error: ${t.message}", t)
