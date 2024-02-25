@@ -1,10 +1,7 @@
 <resources>
     <string name="app_name">Beady Eyes</string>
     <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="title_activity_money_screen.kt">MoneyScreen.kt</string>
-    <string name="title_activity_money_screen">MoneyScreen</string>
-    <string name="title_activity_pointer_screen">PointerScreen</string>\
+    \
     <string name="help_dialog">"Beady Eyes" is an app designed to assist individuals with low vision and visual impairments in easily recognizing text and currency.
 \n
 Key Features:
