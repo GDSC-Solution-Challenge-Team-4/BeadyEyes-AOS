@@ -24,11 +24,11 @@ class TextRecognitionAnalyzer(
 ) : ImageAnalysis.Analyzer {
 
     companion object {
-        const val THROTTLE_TIMEOUT_MS = 1_000L //몇초마다 분석 할건지 (같은 text 중복 번역 방지)
+        const val THROTTLE_TIMEOUT_MS = 1_000L
     }
 
-    private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob()) //THROTTLE_TIMEOUT_MS 위해 사용
-    private val textRecognizer: TextRecognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS) //ML kit 가져오기
+    private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private val textRecognizer: TextRecognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
     // When using Korean script library
     private val koreanTextRecognizer : TextRecognizer = TextRecognition.getClient(KoreanTextRecognizerOptions.Builder().build())
 

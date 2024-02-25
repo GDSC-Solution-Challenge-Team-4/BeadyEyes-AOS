@@ -18,7 +18,7 @@ import de.yanneckreiss.mlkittutorial.ui.theme.JetpackComposeBeadyEyesTheme
 @Composable
 fun MoneyScreen(index : Int, mainViewModel: MainViewModel, modifier: Modifier = Modifier) {
     val context: Context = LocalContext.current
-    val detectedText = remember { mutableStateOf("No text detected yet..") }
+    //val detectedText = remember { mutableStateOf("No text detected yet..") }
 
     Box(
         modifier = Modifier
@@ -27,8 +27,8 @@ fun MoneyScreen(index : Int, mainViewModel: MainViewModel, modifier: Modifier = 
     ) {
         CameraContentMoney(context = context, index = index,
             onResult = {
-                detectedText.value = it
-                Log.d("돈",it)
+                //detectedText.value = it
+                //Log.d("돈",it)
                 mainViewModel.onTextValueChange(it)
         })
     }

@@ -14,7 +14,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.platform.LocalContext
 import de.yanneckreiss.mlkittutorial.ui.main.MainViewModel
 import de.yanneckreiss.mlkittutorial.ui.money.ui.CameraContentMoney
@@ -61,30 +60,29 @@ fun pointer(file: String, detectedText: MutableState<String>, mainViewModel: Mai
 
     val api = PointerService.getInstance()
     val file1 = File(file)
-    val fileSize = file1.length()
-    Log.d("포인터 File Size", "파일 크기: $fileSize 바이트")
+    //Log.d("포인터 File Size", "파일 크기: $fileSize 바이트")
 
     val requestFile = file1.asRequestBody("image/jpeg".toMediaTypeOrNull())//"image/jpeg"
     val body = MultipartBody.Part.createFormData("image", file1.name, requestFile)
 
-    Log.d("포인터 파일 타입", file1::class.java.toString())
-    Log.d("포인터 바디", body.toString())
-    Log.d("포인터 리퀘스트 파일", requestFile.toString())
+//    Log.d("포인터 파일 타입", file1::class.java.toString())
+//    Log.d("포인터 바디", body.toString())
+//    Log.d("포인터 리퀘스트 파일", requestFile.toString())
 
     api.postPointerImage(body).enqueue(object : Callback<PointerBackendResponse> {
         override fun onResponse(
             call: Call<PointerBackendResponse>,
             response: Response<PointerBackendResponse>
         ) {
-            Log.d("포인터 성공", "Response code: ${response.code()}")
-            Log.d("포인터 통신", response.body().toString())
+//            Log.d("포인터 성공", "Response code: ${response.code()}")
+//            Log.d("포인터 통신", response.body().toString())
             result = response.body()?.resultData.toString()
-            Log.d("포인터 msg", result)
+            //Log.d("포인터 msg", result)
             detectedText.value = result
             mainViewModel.onTextValueChange(result)
         }
         override fun onFailure(call: Call<PointerBackendResponse>, t: Throwable) {
-            Log.e("포인터 네트워크 오류", "Unknown error: ${t.message}", t)
+            //Log.e("포인터 네트워크 오류", "Unknown error: ${t.message}", t)
         }
     })
 }

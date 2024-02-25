@@ -5,9 +5,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.ThumbnailUtils
 import android.util.Log
-import android.view.ViewGroup
-import android.widget.LinearLayout
-import androidx.camera.core.CameraProvider
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture
@@ -15,21 +12,13 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,24 +26,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.Role.Companion.Image
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.LifecycleStartEffect
 import com.google.common.util.concurrent.ListenableFuture
 import de.yanneckreiss.cameraxtutorial.R
-import de.yanneckreiss.mlkittutorial.ui.pointer.pointer
 import de.yanneckreiss.mlkittutorial.util.classifyImage
-import de.yanneckreiss.mlkittutorial.util.loadImageBufferFromBitmap
-import org.checkerframework.common.subtyping.qual.Bottom
 import java.io.File
 import java.lang.Math.min
 import java.util.Locale
@@ -79,7 +61,6 @@ fun CameraContentMoney(
             .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
             .build()
     }
-    val detectedText = remember { mutableStateOf("No text detected yet..") }
     var result: String by remember { mutableStateOf("") }
 
     Box {
@@ -94,7 +75,6 @@ fun CameraContentMoney(
                         context,
                         imageCapture = imageCapture,
                         imageCaptureExecutor,
-                        detectedText,
                         onResult = {
                             result = it
                             onResult(result)
@@ -195,12 +175,11 @@ fun captureImage(
     context: Context,
     imageCapture: ImageCapture,
     imageCaptureExecutor: Executor,
-    detectedText: MutableState<String>,
     onResult: (String) -> Unit,
     index: Int
 ) {
     val file = createTempFile(context)
-    Log.d("MainActivity24", "${createTempFile(context)}")
+    //Log.d("MainActivity24", "${createTempFile(context)}")
     val outputFileOptions =
         ImageCapture.OutputFileOptions.Builder(file).build()
 
@@ -209,7 +188,7 @@ fun captureImage(
         imageCaptureExecutor,
         object : ImageCapture.OnImageSavedCallback {
             override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                Log.d("돈", "Image saved: ${file.absolutePath}")
+                //Log.d("돈", "Image saved: ${file.absolutePath}")
                 if (index == 1) {
                     var bitmapImage = BitmapFactory.decodeFile(file.absolutePath)
                     var bitmap = ThumbnailUtils.extractThumbnail(
@@ -225,11 +204,11 @@ fun captureImage(
             }
 
             override fun onError(exception: androidx.camera.core.ImageCaptureException) {
-                Log.d(
-                    "MainActivity23",
-                    "Error capturing image: ${exception.message}",
-                    exception
-                )
+//                Log.d(
+//                    "MainActivity23",
+//                    "Error capturing image: ${exception.message}",
+//                    exception
+//                )
             }
         }
     )
