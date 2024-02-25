@@ -15,16 +15,11 @@ import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -38,23 +33,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color.Companion.White
-import androidx.compose.ui.graphics.Color.Companion.Yellow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LifecycleStartEffect
-import de.yanneckreiss.mlkittutorial.ui.money.ui.MoneyScreen
-import de.yanneckreiss.mlkittutorial.ui.money.ui.ui.theme.JetpackComposeCameraXMLKitTutorialTheme
 import kotlinx.coroutines.delay
-import androidx.lifecycle.viewmodel.compose.viewModel
-import de.yanneckreiss.mlkittutorial.ui.dialog.DialogViewModel
 
 
 @Composable
@@ -73,13 +61,7 @@ private fun CameraContent(
     var detectedText: String by remember { mutableStateOf("No text detected yet..") }
     // Text to speech related variables
     var textToSpeech: TextToSpeech? by remember { mutableStateOf(null) }
-    var zoomValue by remember { mutableFloatStateOf(1f) }
     var showMessage by remember { mutableStateOf(false) }
-
-    fun onTextUpdated(updatedText: String) {
-        detectedText = updatedText
-        onTextValueChange(detectedText)
-    }
 
     DisposableEffect(Unit) {
         textToSpeech = TextToSpeech(context) { _ -> }
@@ -100,47 +82,6 @@ private fun CameraContent(
         cameraController.bindToLifecycle(lifecycleOwner)
         onStopOrDispose {
             cameraController.unbind()
-        }
-    }
-
-    val alpha by animateFloatAsState(
-        targetValue = if (showMessage) 1f else 0f,
-        animationSpec = if (showMessage) {
-            tween(durationMillis = 1000, easing = FastOutSlowInEasing)
-        } else {
-            keyframes {
-                durationMillis = 1000
-                1.0f at 0 // fade out 완료
-                0.0f at 1 using FastOutSlowInEasing // fade out 시작
-            }
-        },
-        label = ""
-    )
-
-    if (showMessage) {
-        Box(
-            modifier = Modifier
-                .alpha(alpha)
-                .graphicsLayer(alpha = alpha)
-                .fillMaxSize()
-                .padding(top = 50.dp),
-            contentAlignment = Alignment.TopCenter // 세로 정렬을 맨 위로 설정
-        ) {
-            Box(
-                modifier = Modifier
-                    .background(
-                        androidx.compose.ui.graphics.Color.Gray,
-                        shape = RoundedCornerShape(20.dp)
-                    )
-                    .padding(top = 5.dp, start = 10.dp, end = 10.dp, bottom = 10.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Text Screen",
-                    color = White,
-                    textAlign = TextAlign.Center
-                )
-            }
         }
     }
 
@@ -173,20 +114,6 @@ private fun CameraContent(
                 }
             }
         )
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(color = Yellow, shape = RoundedCornerShape(8.dp))
-                .padding(10.dp),
-            contentAlignment = Alignment.BottomCenter
-        ) {
-            Text(
-                text = detectedText,
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
     }
 }
 
