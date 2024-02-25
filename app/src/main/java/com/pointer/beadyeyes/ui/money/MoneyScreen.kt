@@ -30,11 +30,3 @@ fun MoneyScreen(index : Int, mainViewModel: MainViewModel, modifier: Modifier = 
     }
 
 }
-
-@Preview(showBackground = true)
-@Composable
-fun MoneyPreview() {
-    JetpackComposeBeadyEyesTheme {
-        //MoneyScreen()
-    }
-}

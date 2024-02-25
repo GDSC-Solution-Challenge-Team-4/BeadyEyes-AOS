@@ -154,9 +154,7 @@ fun CameraPreview(
                 imageCapture,
                 imageAnalysis
             )
-            Log.d("MainActivity25", "바인딩 성공")
         } catch (e: Exception) {
-            Log.d("MainActivity25", "바인딩 실패 $e")
         }
         onStopOrDispose {  }
     }
@@ -177,7 +175,6 @@ fun captureImage(
     index: Int
 ) {
     val file = createTempFile(context)
-    //Log.d("MainActivity24", "${createTempFile(context)}")
     val outputFileOptions =
         ImageCapture.OutputFileOptions.Builder(file).build()
 
@@ -186,7 +183,6 @@ fun captureImage(
         imageCaptureExecutor,
         object : ImageCapture.OnImageSavedCallback {
             override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                //Log.d("돈", "Image saved: ${file.absolutePath}")
                 if (index == 1) {
                     var bitmapImage = BitmapFactory.decodeFile(file.absolutePath)
                     var bitmap = ThumbnailUtils.extractThumbnail(
@@ -202,11 +198,6 @@ fun captureImage(
             }
 
             override fun onError(exception: androidx.camera.core.ImageCaptureException) {
-//                Log.d(
-//                    "MainActivity23",
-//                    "Error capturing image: ${exception.message}",
-//                    exception
-//                )
             }
         }
     )
