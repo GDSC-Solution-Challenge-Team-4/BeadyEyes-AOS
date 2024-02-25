@@ -45,6 +45,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.graphics.Color.Companion.Gray
 import androidx.compose.ui.graphics.Color.Companion.White
@@ -55,10 +56,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -70,6 +75,8 @@ import com.skydoves.balloon.annotations.InternalBalloonApi
 import com.skydoves.balloon.compose.Balloon
 import com.skydoves.balloon.compose.BalloonWindow
 import com.skydoves.balloon.compose.rememberBalloonBuilder
+import com.skydoves.balloon.overlay.BalloonOverlayAnimation
+import com.skydoves.balloon.overlay.BalloonOverlayRoundRect
 import de.yanneckreiss.cameraxtutorial.R
 import de.yanneckreiss.mlkittutorial.ui.MainScreen
 import de.yanneckreiss.mlkittutorial.ui.RecordAndConvertToText
@@ -77,15 +84,20 @@ import de.yanneckreiss.mlkittutorial.ui.dialog.DialogViewModel
 import de.yanneckreiss.mlkittutorial.ui.main.MainViewModel
 import de.yanneckreiss.mlkittutorial.ui.money.ui.MoneyScreen
 import de.yanneckreiss.mlkittutorial.ui.pointer.PointerScreen
+import de.yanneckreiss.mlkittutorial.ui.splash.SplashScreen
 import de.yanneckreiss.mlkittutorial.ui.theme.JetpackComposeBeadyEyesTheme
 import de.yanneckreiss.mlkittutorial.ui.theme.MainYellow
-import de.yanneckreiss.mlkittutorial.ui.theme.Purple40
+import de.yanneckreiss.mlkittutorial.ui.theme.pretendard_bold
+import de.yanneckreiss.mlkittutorial.ui.theme.pretendard_light
+import de.yanneckreiss.mlkittutorial.ui.theme.pretendard_regular
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 class MainActivity : ComponentActivity() {
-    @OptIn(ExperimentalFoundationApi::class, ExperimentalPermissionsApi::class,
-        InternalBalloonApi::class
-    )
+    @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -107,7 +119,7 @@ class MainActivity : ComponentActivity() {
             var balloonWindow: BalloonWindow? by remember { mutableStateOf(null) }
             var isBalloonShowing by remember { mutableStateOf(false) }
             val scrollState = rememberScrollState()
-
+            var splashToggle by remember { mutableStateOf(false) }
 
             val permissionState = rememberPermissionState(
                 permission = Manifest.permission.RECORD_AUDIO
@@ -131,19 +143,22 @@ class MainActivity : ComponentActivity() {
                 setTextSize(15f)
                 setArrowPositionRules(ArrowPositionRules.ALIGN_ANCHOR)
                 setArrowSize(10)
-                setArrowPosition(0.5f)
-                setPadding(5)
+                //setArrowPosition(0.5f)
+                setArrowPosition(0.91F)
                 setCornerRadius(8f)
+                setBalloonAnimation(BalloonAnimation.OVERSHOOT)
                 setBackgroundColorResource(R.color.white)
-                setBalloonAnimation(BalloonAnimation.ELASTIC)
+                setMarginHorizontal(10)
+                setOverlayShape(BalloonOverlayRoundRect(12f, 12f))
                 setOnBalloonDismissListener {
                     mainViewModel.stopPlay()
                     //balloonWindow?.updateSizeOfBalloonCard(250,250)
                     isBalloonShowing = false
                 }
             }
+
             LaunchedEffect(Unit) {
-                //toast message
+                delay(3000)
                 mainViewModel.toastMessage.observe(lifecycleOwner) {
                     Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
                 }
@@ -193,6 +208,7 @@ class MainActivity : ComponentActivity() {
                                 .fillMaxWidth()
                                 .padding(5.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.Bottom
                         ) {
                             IconButton(
                                 onClick = {
@@ -215,10 +231,12 @@ class MainActivity : ComponentActivity() {
                             }
                             Text(
                                 text = ttsIndex(pagerState.currentPage),
-                                fontSize = 16.sp,
+                                fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Black,
-                                modifier = Modifier.padding(20.dp)
+                                modifier = Modifier
+                                    .align(Alignment.Bottom)
+                                    .padding(bottom=10.dp)
                             )
                             IconButton(
                                 onClick = {
@@ -266,6 +284,10 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                             Balloon(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .align(Alignment.TopEnd)
+                                    .padding(end = 5.dp),
                                 builder = balloonBuilder,
                                 onBalloonWindowInitialized = { balloonWindow = it },
                                 balloonContent = {
@@ -352,7 +374,6 @@ class MainActivity : ComponentActivity() {
                                 isBalloonShowing = true
                                 balloonWindow?.showAlignBottom(110, 30)
                             },
-                            //enabled = mainViewModel.state.value.isButtonEnabled,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(100.dp)
@@ -402,15 +423,17 @@ class MainActivity : ComponentActivity() {
                         },
                         title = {
                             Text(
-                                text = "도움말",
+                                text = "How to use",
                                 modifier = Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.Center
+                                textAlign = TextAlign.Center,
+                                fontFamily = pretendard_bold
                             )
                         },
                         text = {
                             Text(
                                 text = stringResource(id = R.string.help_dialog),
-                                modifier = Modifier.verticalScroll(rememberScrollState())
+                                modifier = Modifier.verticalScroll(rememberScrollState()),
+                                fontFamily = pretendard_light
                             )
                         }
                     )

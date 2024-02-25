@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
@@ -85,14 +86,12 @@ private fun CameraContent(
         }
     }
 
-    Scaffold(
+    Box(
         modifier = Modifier.fillMaxSize()
-    ) { paddingValues: PaddingValues ->
-
+    ) {
         AndroidView(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
+                .fillMaxSize(),
             factory = { context ->
                 PreviewView(context).apply {
                     layoutParams = LinearLayout.LayoutParams(

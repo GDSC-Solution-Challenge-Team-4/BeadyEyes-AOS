@@ -104,7 +104,7 @@ fun CameraContentMoney(
                 },
                 modifier = Modifier
                     .padding(10.dp)
-                    .align(Alignment.BottomEnd)
+                    .align(Alignment.BottomStart)
                     .padding(10.dp)
                     .width(50.dp)
                     .height(50.dp)
