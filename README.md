@@ -1,4 +1,4 @@
-## GDSC Solution Challenge - BeadyEyes
+## GDSC Google Solution Challenge - BeadyEyes
 ### Front repo
 ---
 ### How to run my code on local environment by using Android Studio emulator
