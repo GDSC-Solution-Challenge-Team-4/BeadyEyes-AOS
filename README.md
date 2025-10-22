@@ -1,5 +1,8 @@
 # BeadyEyes 👁️
 
+<img width="2095" height="1289" alt="목업 (2)" src="https://github.com/user-attachments/assets/cefb8414-e177-4815-8326-928bf5c1e904" />
+
+
 > GDSC Solution Challenge 2024 출품작  
 > 저시력자를 위한 실시간 글씨 및 지폐 인식 음성 안내 애플리케이션
 
@@ -7,6 +10,9 @@
 
 BeadyEyes는 시각장애인과 저시력자의 일상생활을 돕기 위해 개발된 Android 애플리케이션입니다.  
 카메라와 ML 모델을 활용하여 실시간으로 문자와 화폐를 인식하고, 음성으로 안내하여 시각적 정보 접근성을 높입니다.
+
+<img width="660" height="452" alt="스크린샷 2025-10-22 오전 10 05 46" src="https://github.com/user-attachments/assets/a276c3a6-a5b0-48f8-8d82-d95530cea870" />
+
 
 ## ✨ 주요 기능
 
