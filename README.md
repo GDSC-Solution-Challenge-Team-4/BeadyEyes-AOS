@@ -1,80 +1,103 @@
-## GDSC Google Solution Challenge - BeadyEyes
-### Front repo
+# BeadyEyes 👁️
+
+> GDSC Solution Challenge 2024 출품작  
+> 저시력자를 위한 실시간 글씨 및 지폐 인식 음성 안내 애플리케이션
+
+## 📖 프로젝트 소개
+
+BeadyEyes는 시각장애인과 저시력자의 일상생활을 돕기 위해 개발된 Android 애플리케이션입니다.  
+카메라와 ML 모델을 활용하여 실시간으로 문자와 화폐를 인식하고, 음성으로 안내하여 시각적 정보 접근성을 높입니다.
+
+## ✨ 주요 기능
+
+- **실시간 문자 인식**: Google ML Kit 기반 한글/영문 텍스트 실시간 인식 및 음성 안내
+- **화폐 인식**: TFLite 모델을 활용한 한국/미국 지폐 및 한국 동전 분류
+- **음성 내비게이션**: Google STT/TTS를 이용한 음성 명령 기반 화면 전환
+- **접근성 중심 UX**: 시각장애인을 고려한 직관적인 음성 피드백 및 간편한 조작
+
+## 🛠️ 기술 스택
+
+### Android
+- **Language**: Kotlin
+- **UI**: Jetpack Compose, Material3
+- **Camera**: Compose CameraX, Camera Preview
+- **ML**: TensorFlow Lite, Google ML Kit (Text Recognition, Google Vision API)
+
+### Backend & Cloud
+- Spring, Firebase, Docker, Github Actions
+
+### 개발 환경
+- Android Studio (API Level 34)
+- Gradle 8.6
+- Java 17
+
+## 📂 프로젝트 구조
+
+```
+app/
+├── src/main/
+│   ├── java/com/pointer/beadyeyes/
+│   │   ├── MainActivity.kt
+│   │   ├── ui/
+│   │   │   ├── main/          # 메인 화면 (ViewPager 기반 화면 전환)
+│   │   │   ├── pointer/       # 문자 인식 화면
+│   │   │   ├── money/         # 화폐 인식 화면 (CameraX + TFLite)
+│   │   │   ├── camera/        # 카메라 관련 공통 컴포넌트
+│   │   │   ├── stt/           # 음성 인식 (Speech-to-Text)
+│   │   │   └── tts/           # 음성 출력 (Text-to-Speech)
+│   │   └── util/              # 유틸리티 (BitmapUtils 등)
+│   ├── ml/
+│   │   └── model.tflite       # 화폐 인식용 TFLite 모델
+│   └── res/                   # 리소스 파일
+└── build.gradle
+```
+
+## 🎯 핵심 구현 내용
+
+### 1. 이미지 처리 파이프라인
+CameraX로 캡처한 이미지를 Bitmap → ByteBuffer로 변환하고, 리사이즈 최적화를 거쳐 TFLite 모델 및 자체 AI API와 통신합니다.
+
+### 2. 화폐 인식 모델
+- 미국/한국 지폐 데이터 직접 수집 및 지도학습
+- 1,000개의 한국 동전 데이터셋 구축 및 학습
+- TFLite 모델을 Kotlin에서 ML Model Binding으로 통합
+
+### 3. 음성 인터랙션
+Google STT API를 활용하여 음성 명령으로 화면 전환이 가능하며, TTS API로 인식 결과를 즉시 음성으로 안내합니다.
+
+### 4. 손가락 포인팅 부분 텍스트 인식
+손가락 끝으로 가르킨 부분의 일정 영역에 텍스트가 있다면 이를 읽어, Google vision OCR 파인튜닝 AI모델 응답 결과를 반환하는 API 불러와 인식한 텍스트를 'Balloon'을 통해 텍스트 및 음성으로 반환해, 저시력자 사용자의 일상을 돕습니다. (키오스크, 전단지, 간판 등)
+
+## 🚀 실행 방법
+
+### 요구사항
+- Android Studio (최신 Stable 버전 권장)
+- Android SDK Platform 34 이상
+- 실제 기기 또는 AVD (카메라 및 마이크 권한 필요)
+
+### 실행 단계
+1. Android Studio에서 프로젝트 열기
+2. Gradle 동기화 완료 대기
+3. 실제 기기 또는 AVD 선택
+4. `Run ▶` 버튼 클릭하여 앱 빌드 및 실행
+
+### 권한 안내
+앱 실행 시 다음 권한이 필요합니다:
+- 카메라 (문자/화폐 인식)
+- 마이크 (음성 명령)
+
+## 👥 팀 구성
+
+**GDSC Solution Challenge Team 4** (2024.02)
+
+- Backend Developer: 1명
+- AI/ML Developer: 1명  
+- Android Developer: 2명 (PM 포함)
+
+## 📝 라이선스
+
+이 프로젝트는 GDSC Solution Challenge 2024 출품작입니다.
+
 ---
-### How to run my code on local environment by using Android Studio emulator
 
-##### Get started with the emulator
-The Android Emulator lets you test your app on many different devices virtually. The emulator comes with Android Studio, so you don't need to install it separately. To use the emulator, follow these basic steps, which are described in more detail in the sections that follow:
-
-1. Verify that you have the system requirements.
-2. Create an Android Virtual Device (AVD).
-3. Run your app on the emulator.
-4. Navigate the emulator.
-
-Emulator system requirements
-For the best experience, you should use the emulator in Android Studio on a computer with at least the following specs:
-
-- 16 GB RAM
-- 64-bit Windows, macOS, Linux, or ChromeOS operating system
-- 16 GB disk space
-
-#### Create an Android Virtual Device
-Each instance of the Android Emulator uses an Android virtual device (AVD) to specify the Android version and hardware characteristics of the simulated device. To effectively test your app, create an AVD that models each device your app is designed to run on. To create an AVD, see Create and manage virtual devices.
-
-Each AVD functions as an independent device with its own private storage for user data, SD card, and so on. By default, the emulator stores the user data, SD card data, and cache in a directory specific to that AVD. When you launch the emulator, it loads the user data and SD card data from the AVD directory.
-
-#### Run your app on the emulator
-After you have created an AVD, you can start the Android Emulator and run an app in your project:
-
-1. In the toolbar, select the AVD that you want to run your app on from the target device menu.
-<p align="center"><img src="https://github.com/GDSC-Solution-Challenge-Team-4/BeadyEyes-AOS/assets/127933902/8e331e2e-09db-4589-8d3b-041bec802db0"></p>
-
-2. Click Run. The emulator might take a minute or so to launch for the first time, but subsequent launches use a snapshot and should launch faster. If you experience issues, see the troubleshooting guide.
-
-Once your app is installed on your AVD, you can run it from the device as you would run any app on a device. Any time you want to deploy new changes, you need to click Run or Apply Changes again.
-
-#### Wear OS pairing assistant
-If you want to test your app with Wear OS devices, the Wear OS pairing assistant guides you step-by-step through pairing Wear OS emulators with physical or virtual phones directly in Android Studio. To learn more, see Use the Wear OS emulator pairing assistant.
-
-#### Navigate the emulator
-While the emulator is running, you can use your computer mouse pointer to mimic your finger on the touch screen and use the emulator panel to perform common actions.
-
-#### Navigate the emulator screen
-Use your computer mouse pointer to mimic your finger on the touchscreen, select menu items and input fields, and click buttons and controls. Use your computer keyboard to type characters and enter emulator shortcuts.
-
----
-If you want more detailed information, please visit the following link: https://developer.android.com/studio/run/emulator#requirements
-
----
-
-### How to run my code on local environment by using hardware device 
-
-#### Set up a device for development
-Before you can start debugging on your device, decide whether you want to connect to the device using a USB cable or Wi-Fi. Then do the following:
-
-On the device, open the Settings app, select Developer options, and then enable USB debugging (if applicable).
-
-Note: If you don't see Developer options, follow the instructions to [enable developer options](https://developer.android.com/studio/run/device?_gl=1*1brd377*_up*MQ..*_ga*MTgyOTIyNjQxNS4xNzA4Nzk0MDQx*_ga_6HH9YJMN9M*MTcwODc5NDA0MS4xLjAuMTcwODc5NDA0MS4wLjAuMA..).
-
-####Set up your system to detect your device.
-
-- ChromeOS: No additional configuration required.
-- macOS: No additional configuration required.
-- Windows: Install a USB driver for ADB (if applicable). For an installation guide and links to OEM drivers, see Install OEM USB drivers.
-
-#### Connect to your device using USB
-When you're set up and plugged in over USB, click Run  in Android Studio to build and run your app on the device.
-
-You can also use adb to issue commands, as follows:
-
-- Verify that your device is connected by running the adb devices command from your android_sdk/platform-tools/ directory. If connected, you'll see the device listed.
-- Issue any adb command with the -d flag to target your device
-
----
-If you want more detailed information, please visit the following link: 
-https://developer.android.com/studio/run/device?_gl=1*1brd377*_up*MQ..*_ga*MTgyOTIyNjQxNS4xNzA4Nzk0MDQx*_ga_6HH9YJMN9M*MTcwODc5NDA0MS4xLjAuMTcwODc5NDA0MS4wLjAuMA..
-
----
-
-#### The application requires Android API level 34 or higher. 
-#### It also requires permissions for audio recording and camera usage to be granted while the application is in use
+**Made with ❤️ by GDSC Solution Challenge Team 4**
